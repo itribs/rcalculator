@@ -1,0 +1,22 @@
+{
+    "pluginName": "计算器",
+    "description": "rcalculator",
+    "author": "Ribs",
+    "main": "index.html",
+    "preload": "preload.js",
+    "logo": "logo.png",
+    "version": "0.0.1",
+    "features": [
+        {
+            "code": "rcalculator",
+            "explain": "计算器",
+            "cmds": [
+                "rcalculator",
+                "计算器"
+            ]
+        }
+    ],
+    "pluginSetting": {
+        "height": 673
+    }
+}

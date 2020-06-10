@@ -1,0 +1,19 @@
+{
+    "name": "rcalculator",
+    "version": "0.1.0",
+    "private": true,
+    "scripts": {
+        "test": "node src/test.js",
+        "serve": "vue-cli-service serve",
+        "build": "vue-cli-service build"
+    },
+    "dependencies": {
+        "element-ui": "^2.13.0",
+        "vue": "^2.6.10"
+    },
+    "devDependencies": {
+        "@vue/cli-plugin-babel": "^4.1.0",
+        "@vue/cli-service": "^4.1.0",
+        "vue-template-compiler": "^2.6.10"
+    }
+}
