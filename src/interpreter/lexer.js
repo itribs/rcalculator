@@ -5,7 +5,7 @@ let lexicals = [
     { type: Token.type.CosFunc, rule: 'cos' },
     { type: Token.type.Identifier, rule: /^[a-zA-Z_][0-9a-zA-Z_]*$/ },
     { type: Token.type.IntLiteral, rule: /^\d+$/ },
-    { type: Token.type.FloatLiteral, rule: /^\d+(\.\d+)?$/ },
+    { type: Token.type.FloatLiteral, rule: /^\d+(\.?|\.\d+)?$/ },
     { type: Token.type.Equal, rule: '=' },
     { type: Token.type.Plus, rule: '+' },
     { type: Token.type.Minus, rule: '-' },

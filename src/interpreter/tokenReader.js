@@ -13,7 +13,7 @@ class TokenReader {
 
     peek () {
         if (this.pos < this.tokens.length) {
-            return this.tokens[this.pos + 1]
+            return this.tokens[this.pos]
         }
     }
 
