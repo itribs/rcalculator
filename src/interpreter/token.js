@@ -35,7 +35,7 @@ Token.type = {
     LeftParen: 'LeftParen',
     RightParen: 'RightParen',
     LineBreak: 'LineBreak',
-    CosFunc: 'CosFunc'
+    Comma: 'Comma'
 }
 
 module.exports = Token

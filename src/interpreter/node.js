@@ -29,10 +29,11 @@ Node.type = {
     Programm: 'Programm',           //程序入口，根节点
 
     Assignment: 'Assignment',     //赋值语句
+    Function: 'Function',     //方法调用
 
-    Primary: 'Primary',            //基础表达式
     Multiplicative: 'Multiplicative',     //乘法表达式
     Additive: 'Additive',           //加法表达式
+    Mod: 'Mod',                 //求余表达式
 
     Identifier: 'Identifier',         //标识符
     IntLiteral: 'IntLiteral',          //整型字面量

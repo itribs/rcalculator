@@ -1,12 +1,13 @@
-let Node = require('./node')
-let Token = require('./token')
+const Node = require('./node')
+const Token = require('./token')
 
 /*
 Expression := Assignment | Additive
 Assignment := Identifier '=' Additive
-Additive := Multiplicative |  Additive '+' Multiplicative |  Additive '-' Multiplicative
-Multiplicative := Primary | Primary '*' Multiplicative | Primary '/' Multiplicative | Primary '%' Multiplicative
-Primary := Identifier | IntLiteral | FloatLiteral | (Additive)
+Additive := Multiplicative | Additive '+' Multiplicative | Additive '-' Multiplicative 
+Multiplicative := Function | Multiplicative '*' Function | Multiplicative '/' Function | Multiplicative '%' Function
+Function := Identifier '(' (Additive (',' Additive)?)? ')' | Primary
+Primary := Identifier | IntLiteral | FloatLiteral | '(' Additive ')'
 */
 
 function primary (tokens) {
@@ -32,12 +33,52 @@ function primary (tokens) {
                     if (token && token.type == Token.type.RightParen) {
                         tokens.read()
                     } else {
-                        throw "缺少右括号"
+                        if (!token) {
+                            tokens.unread()
+                            token = tokens.peek()
+                        }
+                        let e = new Error(`error:格式错误\n缺少右括号\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                        throw e
                     }
                 } else {
-                    throw "括号内缺少表达式"
+                    let e = new Error(`error:格式错误\n括号内缺少表达式\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                    throw e
                 }
                 break
+            case Token.type.Unknown:
+                let e = new Error(`error:格式错误\n发现未知字符\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                throw e
+                break
+        }
+    }
+    return node
+}
+
+function func (tokens) {
+    let node = null
+    let token = tokens.peek()
+    if (token && token.type == Token.type.Identifier) {
+        tokens.read()
+        let child1 = new Node(Node.type.Identifier, token.text)
+        token = tokens.peek()
+        if (token && token.type == Token.type.LeftParen) {
+            tokens.read()
+            node = new Node(Node.type.Function, 'Function')
+            node.addChild(child1)
+            let child2 = additive(tokens)
+            if (!token || token.type != Token.type.RightParen) {
+                if (!token) {
+                    tokens.unread()
+                    token = tokens.peek()
+                }
+                let e = new Error(`error:格式错误\n缺少右括号\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                throw e
+            }
+            if (child2) {
+                node.addChild(child2)
+            }
+        } else {
+            tokens.unread()
         }
     }
     return node
@@ -46,17 +87,23 @@ function primary (tokens) {
 function multiplicative (tokens) {
     let child1 = primary(tokens)
     let node = child1
-    let token = tokens.peek()
-    if (child1 && token) {
-        if (token.type == Token.type.Star || token.type == Token.type.Slash || token.type == Token.type.Percent) {
-            token = tokens.read()
-            let child2 = multiplicative(tokens)
-            if (child2) {
-                node = new Node(Node.type.Multiplicative, token.text)
-                node.addChild(child1)
-                node.addChild(child2)
+    if (child1) {
+        while (true) {
+            let token = tokens.peek()
+            if (token && (token.type == Token.type.Star || token.type == Token.type.Slash || token.type == Token.type.Percent)) {
+                token = tokens.read()
+                let child2 = primary(tokens)
+                if (child2) {
+                    node = new Node(Node.type.Multiplicative, token.text)
+                    node.addChild(child1)
+                    node.addChild(child2)
+                    child1 = node
+                } else {
+                    let e = new Error(`error:格式错误\n表达式缺少右边值\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                    throw e
+                }
             } else {
-                throw "表达式缺少右边值"
+                break
             }
         }
     }
@@ -72,10 +119,15 @@ function additive (tokens) {
             if (token && (token.type == Token.type.Plus || token.type == Token.type.Minus)) {
                 token = tokens.read()
                 let child2 = multiplicative(tokens)
-                node = new Node(Node.type.Additive, token.text)
-                node.addChild(child1)
-                node.addChild(child2)
-                child1 = node
+                if (child2) {
+                    node = new Node(Node.type.Additive, token.text)
+                    node.addChild(child1)
+                    node.addChild(child2)
+                    child1 = node
+                } else {
+                    let e = new Error(`error:格式错误\n表达式缺少右边值\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                    throw e
+                }
             } else {
                 break
             }
@@ -104,30 +156,39 @@ function assignment (tokens) {
     return null
 }
 
+function blank (tokens) {
+    let token = tokens.peek()
+    if (token && token.type == Token.type.LineBreak) {
+        tokens.read()
+        return new Node(Node.type.Blank, '\n')
+    }
+    return null
+}
+
 function expression (tokens) {
     let pos = tokens.getPos()
-    let node = assignment(tokens)
+    let node = blank(tokens)
+    if (!node) {
+        node = assignment(tokens)
+    }
     if (!node) {
         tokens.setPos(pos)
         node = additive(tokens)
-    }
-    token = tokens.peek()
-    if (!token || token.type == Token.type.LineBreak) {
-        if (token) {
-            tokens.read()
-        }
-    } else {
-        throw "每个语句独占一行"
+        token = tokens.peek()
     }
 
-    while (true) {
+    if (node && node.type != Node.type.Blank) {
         token = tokens.peek()
-        if (token && token.type == Token.type.LineBreak) {
-            tokens.read()
+        if (!token || token.type == Token.type.LineBreak) {
+            if (token) {
+                tokens.read()
+            }
         } else {
-            break
+            let e = new Error(`error:格式错误\n每个语句独占一行\n行:${token.lineNumber}\n列:${token.startColumn}`)
+            throw e
         }
     }
+
     return node
 }
 
@@ -141,6 +202,7 @@ function treeRootNode (tokens) {
             break
         }
     }
+    tokens.setPos(0)
     return node
 }
 

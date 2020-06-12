@@ -1,8 +1,7 @@
-let Token = require('./token')
-let TokenReader = require('./tokenReader')
+const Token = require('./token')
+const TokenReader = require('./tokenReader')
 
-let lexicals = [
-    { type: Token.type.CosFunc, rule: 'cos' },
+const lexicals = [
     { type: Token.type.Identifier, rule: /^[a-zA-Z_][0-9a-zA-Z_]*$/ },
     { type: Token.type.IntLiteral, rule: /^\d+$/ },
     { type: Token.type.FloatLiteral, rule: /^\d+(\.?|\.\d+)?$/ },
@@ -14,6 +13,7 @@ let lexicals = [
     { type: Token.type.Percent, rule: '%' },
     { type: Token.type.LeftParen, rule: '(' },
     { type: Token.type.RightParen, rule: ')' },
+    { type: Token.type.Comma, rule: ',' },
     { type: Token.type.LineBreak, rule: '\n' }
 ]
 
@@ -73,8 +73,13 @@ function isBlank (text) {
 function tokenize (code) {
     if (!code) return
 
+    tokens = []
+    tokenText = ''
+    initialState = true
+    curLexical = null
+    column = 0
     lineNumber = 1
-    code = code.trim()
+
     for (let i = 0; i < code.length; i++) {
         let ch = code[i]
 

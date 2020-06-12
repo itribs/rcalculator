@@ -1,5 +1,10 @@
-let lexer = require('./interpreter/lexer')
+const { clipboard } = require('electron')
+const interpreter = require('./interpreter/interpreter')
 
-window.lexer = function (code) {
-    return lexer.tokenize(code)
+window.evaluateCode = function (code) {
+    return interpreter.evaluateCode(code)
+}
+
+window.getClipboard = function () {
+    return clipboard.readText()
 }
