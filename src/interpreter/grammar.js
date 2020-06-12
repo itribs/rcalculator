@@ -65,7 +65,26 @@ function func (tokens) {
             tokens.read()
             node = new Node(Node.type.Function, 'Function')
             node.addChild(child1)
+            let children = []
             let child2 = additive(tokens)
+            if (child2) {
+                children.push(child2)
+                while (true) {
+                    token = tokens.peek()
+                    let child = null
+                    if (token) {
+                        if (token.type == Token.type.Comma) {
+                            tokens.read()
+                            child = additive(tokens)
+                            if (!child) {
+                                let e = new Error(`error:格式错误\n缺少参数\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                                throw e
+                            }
+                            children.push(child)
+                        }
+                    }
+                }
+            }
             if (!token || token.type != Token.type.RightParen) {
                 if (!token) {
                     tokens.unread()
@@ -74,8 +93,8 @@ function func (tokens) {
                 let e = new Error(`error:格式错误\n缺少右括号\n行:${token.lineNumber}\n列:${token.startColumn}`)
                 throw e
             }
-            if (child2) {
-                node.addChild(child2)
+            for (let i = 0; i < children.length; i++) {
+                node.addChild(children[i])
             }
         } else {
             tokens.unread()
