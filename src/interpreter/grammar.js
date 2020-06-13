@@ -19,11 +19,11 @@ function primary (tokens) {
             case Token.type.FloatLiteral:
                 token = tokens.read()
                 let type = token.type == Token.type.IntLiteral ? Node.type.IntLiteral : Node.type.FloatLiteral
-                node = new Node(type, token.text)
+                node = new Node(type, token)
                 break
             case Token.type.Identifier:
                 token = tokens.read()
-                node = new Node(Token.type.Identifier, token.text)
+                node = new Node(Token.type.Identifier, token)
                 break
             case Token.type.LeftParen:
                 token = tokens.read()
@@ -58,34 +58,34 @@ function func (tokens) {
     let node = null
     let token = tokens.peek()
     if (token && token.type == Token.type.Identifier) {
-        tokens.read()
-        let child1 = new Node(Node.type.Identifier, token.text)
+        let identifierToken = tokens.read()
         token = tokens.peek()
         if (token && token.type == Token.type.LeftParen) {
             tokens.read()
-            node = new Node(Node.type.Function, 'Function')
-            node.addChild(child1)
+            node = new Node(Node.type.Function, identifierToken)
             let children = []
-            let child2 = additive(tokens)
-            if (child2) {
-                children.push(child2)
+            let child1 = additive(tokens)
+            if (child1) {
+                children.push(child1)
                 while (true) {
                     token = tokens.peek()
-                    let child = null
-                    if (token) {
-                        if (token.type == Token.type.Comma) {
-                            tokens.read()
-                            child = additive(tokens)
-                            if (!child) {
-                                let e = new Error(`error:格式错误\n缺少参数\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                                throw e
-                            }
-                            children.push(child)
+                    if (token && token.type == Token.type.Comma) {
+                        tokens.read()
+                        let child = additive(tokens)
+                        if (!child) {
+                            let e = new Error(`error:格式错误\n缺少参数\n行:${token.lineNumber}\n列:${token.startColumn}`)
+                            throw e
                         }
+                        children.push(child)
+                    } else {
+                        break
                     }
                 }
             }
-            if (!token || token.type != Token.type.RightParen) {
+            token = tokens.peek()
+            if (token && token.type == Token.type.RightParen) {
+                tokens.read()
+            } else {
                 if (!token) {
                     tokens.unread()
                     token = tokens.peek()
@@ -100,20 +100,23 @@ function func (tokens) {
             tokens.unread()
         }
     }
+    if (!node) {
+        node = primary(tokens)
+    }
     return node
 }
 
 function multiplicative (tokens) {
-    let child1 = primary(tokens)
+    let child1 = func(tokens)
     let node = child1
     if (child1) {
         while (true) {
             let token = tokens.peek()
             if (token && (token.type == Token.type.Star || token.type == Token.type.Slash || token.type == Token.type.Percent)) {
-                token = tokens.read()
-                let child2 = primary(tokens)
+                tokens.read()
+                let child2 = func(tokens)
                 if (child2) {
-                    node = new Node(Node.type.Multiplicative, token.text)
+                    node = new Node(Node.type.Multiplicative, token)
                     node.addChild(child1)
                     node.addChild(child2)
                     child1 = node
@@ -136,10 +139,10 @@ function additive (tokens) {
         while (true) {
             let token = tokens.peek()
             if (token && (token.type == Token.type.Plus || token.type == Token.type.Minus)) {
-                token = tokens.read()
+                tokens.read()
                 let child2 = multiplicative(tokens)
                 if (child2) {
-                    node = new Node(Node.type.Additive, token.text)
+                    node = new Node(Node.type.Additive, token)
                     node.addChild(child1)
                     node.addChild(child2)
                     child1 = node
@@ -158,12 +161,12 @@ function additive (tokens) {
 function assignment (tokens) {
     let token = tokens.peek()
     if (token && token.type == Token.type.Identifier) {
-        token = tokens.read()
-        let child1 = new Node(Node.type.Identifier, token.text)
+        tokens.read()
+        let child1 = new Node(Node.type.Identifier, token)
         token = tokens.peek()
         if (token && token.type == Token.type.Equal) {
-            token = tokens.read()
-            let node = new Node(Node.type.Assignment, token.text)
+            tokens.read()
+            let node = new Node(Node.type.Assignment, token)
             let child2 = additive(tokens)
             if (child2) {
                 node.addChild(child1)
@@ -179,7 +182,7 @@ function blank (tokens) {
     let token = tokens.peek()
     if (token && token.type == Token.type.LineBreak) {
         tokens.read()
-        return new Node(Node.type.Blank, '\n')
+        return new Node(Node.type.Blank, token)
     }
     return null
 }
@@ -212,7 +215,10 @@ function expression (tokens) {
 }
 
 function treeRootNode (tokens) {
-    let node = new Node(Node.type.Programm, 'Calculator')
+    let rootToken = new Token()
+    rootToken.type = Token.type.Identifier
+    rootToken.text = 'Calculator'
+    let node = new Node(Node.type.Programm, rootToken)
     while (true) {
         let child = expression(tokens)
         if (child) {

@@ -1,18 +1,24 @@
 {
-    "pluginName": "计算器",
+    "pluginName": "Code计算器",
     "description": "rcalculator",
     "author": "Ribs",
     "main": "index.html",
     "preload": "preload.js",
-    "logo": "logo.png",
-    "version": "0.0.1",
+    "logo": "logo6.png",
+    "version": "0.1.0",
     "features": [
         {
             "code": "rcalculator",
-            "explain": "计算器",
+            "explain": "Code计算器",
             "cmds": [
                 "rcalculator",
-                "计算器"
+                "Code计算器",
+                {
+                    "type": "regex",
+                    "label": "Code计算器",
+                    "match": "/^[\\.+\\-*/%0-9\\(\\)]*$/",
+                    "minLength": 1
+                }
             ]
         }
     ],

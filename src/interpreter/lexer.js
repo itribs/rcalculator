@@ -3,8 +3,8 @@ const TokenReader = require('./tokenReader')
 
 const lexicals = [
     { type: Token.type.Identifier, rule: /^[a-zA-Z_][0-9a-zA-Z_]*$/ },
-    { type: Token.type.IntLiteral, rule: /^\d+$/ },
-    { type: Token.type.FloatLiteral, rule: /^\d+(\.?|\.\d+)?$/ },
+    { type: Token.type.IntLiteral, rule: /^-?\d+$/ },
+    { type: Token.type.FloatLiteral, rule: /^-?\d+(\.?|\.\d+)?$/ },
     { type: Token.type.Equal, rule: '=' },
     { type: Token.type.Plus, rule: '+' },
     { type: Token.type.Minus, rule: '-' },
@@ -71,7 +71,6 @@ function isBlank (text) {
 }
 
 function tokenize (code) {
-    if (!code) return
 
     tokens = []
     tokenText = ''
@@ -80,44 +79,46 @@ function tokenize (code) {
     column = 0
     lineNumber = 1
 
-    for (let i = 0; i < code.length; i++) {
-        let ch = code[i]
+    if (code && code.length > 0) {
+        for (let i = 0; i < code.length; i++) {
+            let ch = code[i]
 
-        if (initialState) {
-            initialToken(ch, i)
-        } else {
-            if (curLexical) {
-                if (match(curLexical, tokenText + ch)) {
-                    tokenText += ch
+            if (initialState) {
+                initialToken(ch, i)
+            } else {
+                if (curLexical) {
+                    if (match(curLexical, tokenText + ch)) {
+                        tokenText += ch
+                    } else {
+                        let lexical = matchLexical(tokenText + ch)
+                        if (lexical) {
+                            curLexical = lexical
+                            tokenText += ch
+                        } else {
+                            initialToken(ch, i)
+                        }
+                    }
                 } else {
                     let lexical = matchLexical(tokenText + ch)
                     if (lexical) {
                         curLexical = lexical
                         tokenText += ch
                     } else {
-                        initialToken(ch, i)
-                    }
-                }
-            } else {
-                let lexical = matchLexical(tokenText + ch)
-                if (lexical) {
-                    curLexical = lexical
-                    tokenText += ch
-                } else {
-                    lexical = matchLexical(ch)
-                    if (lexical) {
-                        initialToken(ch, i)
-                    } else {
-                        tokenText += ch
+                        lexical = matchLexical(ch)
+                        if (lexical) {
+                            initialToken(ch, i)
+                        } else {
+                            tokenText += ch
+                        }
                     }
                 }
             }
+
+            column++
         }
 
-        column++
+        initialToken()
     }
-
-    initialToken()
 
     return new TokenReader(tokens)
 }

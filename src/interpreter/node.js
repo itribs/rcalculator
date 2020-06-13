@@ -1,10 +1,10 @@
 class Node {
 
-    constructor(type, text) {
+    constructor(type, token) {
         this.parent = null
         this._children = []
         this.type = type
-        this.text = text
+        this.token = token
     }
 
     getChildren () {
@@ -17,7 +17,7 @@ class Node {
     }
 
     dumpAST (node, indent) {
-        console.log(indent + node.type + " " + node.text)
+        console.log(indent + node.type + " " + node.token.text)
         let list = node.getChildren()
         for (let i = 0; i < list.length; i++) {
             this.dumpAST(list[i], indent + "\t");
