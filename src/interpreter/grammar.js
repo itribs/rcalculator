@@ -15,8 +15,16 @@ function primary (tokens) {
     let token = tokens.peek()
     if (token) {
         switch (token.type) {
+            case Token.type.Minus:
             case Token.type.IntLiteral:
             case Token.type.FloatLiteral:
+                if (token.type == Token.type.Minus) {
+                    tokens.read()
+                    token = tokens.peek()
+                    if (token.type == Token.type.IntLiteral || token.type == Token.type.FloatLiteral) {
+                        token.text = '-' + token.text
+                    }
+                }
                 token = tokens.read()
                 let type = token.type == Token.type.IntLiteral ? Node.type.IntLiteral : Node.type.FloatLiteral
                 node = new Node(type, token)
