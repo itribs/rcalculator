@@ -15,7 +15,7 @@ let defaultVariables = {
 }
 
 function getVariable (name) {
-    let vars = Object.assign(defaultVariables, variables);
+    let vars = Object.assign({}, defaultVariables, variables)
     return vars[name]
 }
 
