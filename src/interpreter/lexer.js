@@ -4,6 +4,9 @@ const TokenReader = require('./tokenReader')
 const lexicals = [
     { type: Token.type.Identifier, rule: /^[a-zA-Z_][0-9a-zA-Z_]*$/ },
     { type: Token.type.IntLiteral, rule: /^\d+$/ },
+    { type: Token.type.IntLiteral, rule: /^0x[0-9a-f]*$/i },
+    { type: Token.type.IntLiteral, rule: /^0b[0-1]*$/i },
+    { type: Token.type.IntLiteral, rule: /^0o[0-7]*$/i },
     { type: Token.type.FloatLiteral, rule: /^\d+(\.?|\.\d+)?$/ },
     { type: Token.type.Equal, rule: '=' },
     { type: Token.type.Plus, rule: '+' },

@@ -14,6 +14,18 @@ let defaultVariables = {
     SQRT2: Math.SQRT2
 }
 
+let funcs = {
+    bin: function (value) {
+        return value ? '0b' + value.toString(2) : ''
+    },
+    oct: function (value) {
+        return value ? '0o' + value.toString(8) : ''
+    },
+    hex: function (value) {
+        return value ? '0x' + value.toString(16) : ''
+    }
+}
+
 function getVariable (name) {
     let vars = Object.assign({}, defaultVariables, variables)
     return vars[name]
@@ -27,19 +39,26 @@ function freeVariables () {
     variables = {}
 }
 
-function excFunc (node) {
+function getFunc (node) {
     let funcName = node.token.text
     let func = eval('Math.' + funcName)
-    if (func && typeof func == 'function') {
+    if (!func || typeof func != 'function') {
+        func = funcs[funcName]
+    }
+    return func
+}
+
+function excFunc (node) {
+    let func = getFunc(node)
+    if (func) {
         let children = node.getChildren()
         let args = []
         for (let i = 0; i < children.length; i++) {
-            args.push(evaluate(children[i]))
+            args.push(dec(evaluate(children[i])))
         }
         return func.apply(null, args)
     } else {
-        let e = new Error(`error:运行错误\n未知的函数:${funcName}\n行:${node.token.lineNumber}\n列:${node.token.startColumn}`)
-        throw e
+        throwError(`未知的函数:${funcName}`, node)
     }
 }
 
@@ -62,8 +81,8 @@ function evaluate (node) {
             result = expressionValue
             break
         case Node.type.Multiplicative:
-            var leftValue = evaluate(children[0])
-            var rightValue = evaluate(children[1])
+            var leftValue = dec(evaluate(children[0]))
+            var rightValue = dec(evaluate(children[1]))
             if (node.token.text == '*') {
                 result = leftValue * rightValue
             } else if (node.token.text == '/') {
@@ -73,8 +92,8 @@ function evaluate (node) {
             }
             break
         case Node.type.Additive:
-            var leftValue = evaluate(children[0])
-            var rightValue = evaluate(children[1])
+            var leftValue = dec(evaluate(children[0]))
+            var rightValue = dec(evaluate(children[1]))
             if (node.token.text == '+') {
                 result = leftValue + rightValue
             } else {
@@ -88,12 +107,14 @@ function evaluate (node) {
             var variableName = node.token.text
             result = getVariable(variableName)
             if (!result) {
-                let e = new Error(`error:运行错误\n未定义的变量:${variableName}\n行:${node.token.lineNumber}\n列:${node.token.startColumn}`)
-                throw e
+                throwError(`未定义的变量:${variableName}`, node)
             }
             break
         case Node.type.IntLiteral:
-            result = parseInt(node.token.text)
+            result = dec(node.token.text)
+            if (isNaN(result)) {
+                throwError(`错误的字面量`, node)
+            }
             break
         case Node.type.FloatLiteral:
             result = parseFloat(node.token.text)
@@ -105,6 +126,29 @@ function evaluate (node) {
     return result
 }
 
+function dec (str) {
+    if (typeof str == 'number') return str
+    var radix = 0
+    if (str.toLowerCase().startsWith("0x")) {
+        radix = 16
+    } else if (str.toLowerCase().startsWith("0b")) {
+        radix = 2
+    } else if (str.toLowerCase().startsWith("0o")) {
+        radix = 8
+    }
+    if (radix > 0) {
+        var value = str.substr(2)
+        return parseInt(value, radix)
+    }
+    else {
+        return parseInt(str)
+    }
+}
+
+function throwError (msg, node) {
+    let e = new Error(`error:运行错误\n${msg}\n行:${node.token.lineNumber}\n列:${node.token.startColumn}`)
+    throw e
+}
 
 function evaluateCode (code) {
     let result = {}
