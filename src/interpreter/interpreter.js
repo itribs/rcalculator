@@ -58,7 +58,7 @@ function excFunc (node) {
         }
         return func.apply(null, args)
     } else {
-        throwError(`未知的函数:${funcName}`, node)
+        throwError(`未知的函数:${node.token.text}`, node)
     }
 }
 
