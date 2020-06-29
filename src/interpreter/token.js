@@ -10,6 +10,20 @@ class Token {
         this.endColumn = 0
     }
 
+    append (token, newType) {
+        if (!token) return
+
+        let newToken = new Token()
+        newToken.text = this.text + token.text
+        newToken.startPos = this.startPos
+        newToken.startColumn = this.startColumn
+        newToken.lineNumber = this.lineNumber
+        newToken.endPos = token.endPos
+        newToken.endColumn = token.endPos
+        newToken.type = newType
+        return newToken
+    }
+
     toString () {
         let rtn = this.type
         rtn += ":"
@@ -26,6 +40,13 @@ Token.type = {
     Identifier: 'Identifier',
     IntLiteral: 'IntLiteral',
     FloatLiteral: 'FloatLiteral',
+    ShiftLeft: 'ShiftLeft',
+    ShiftRight: 'ShiftRight',
+    LessThan: 'LessThan',
+    GreaterThan: 'GreaterThan',
+    Bar: 'Bar',
+    Ampersand: 'Ampersand',
+    Caret: 'Caret',
     Equal: 'Equal',
     Plus: 'Plus',
     Minus: 'Minus',

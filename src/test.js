@@ -3,8 +3,8 @@ const grammar = require('./interpreter/grammar')
 const interpreter = require('./interpreter/interpreter')
 
 let code = `
-a=bin(123)
-0x21
+a=2
+a+=a+1
 `
 let tokens = lexer.tokenize(code)
 console.log(tokens.toString())

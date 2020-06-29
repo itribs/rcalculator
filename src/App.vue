@@ -37,8 +37,8 @@
                 变量： a = -1.2 <br />
                 默认变量：E、LN2、LN10、LOG2E、LOG10E、PI、SQRT1_2、SQRT2 <br />
                 可以重新赋值：E = 0 <br />
-                运输符：+、-、*、/、%、() <br />
-                Math方法：abs(-1.2)、max(0.5, -2.1)、random() 等等 <br />
+                运输符：+、-、*、/、%、|、&、^、<<、>>、()、+=、-=、|= 等等 <br />
+                  Math方法：abs(-1.2)、max(0.5, -2.1)、random() 等等 <br />
               </div>
               <i class="el-icon-question"></i>
             </el-tooltip>

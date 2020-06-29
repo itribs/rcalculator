@@ -58,7 +58,7 @@ function excFunc (node) {
         }
         return func.apply(null, args)
     } else {
-        throwError(`未知的函数:${node.token.text}`, node)
+        throwError(`未知的函数`, node)
     }
 }
 
@@ -94,10 +94,28 @@ function evaluate (node) {
         case Node.type.Additive:
             var leftValue = dec(evaluate(children[0]))
             var rightValue = dec(evaluate(children[1]))
-            if (node.token.text == '+') {
-                result = leftValue + rightValue
-            } else {
-                result = leftValue - rightValue
+            switch (node.token.text) {
+                case '+':
+                    result = leftValue + rightValue
+                    break
+                case '-':
+                    result = leftValue - rightValue
+                    break
+                case '<<':
+                    result = leftValue << rightValue
+                    break
+                case '>>':
+                    result = leftValue >> rightValue
+                    break
+                case '|':
+                    result = leftValue | rightValue
+                    break
+                case '&':
+                    result = leftValue & rightValue
+                    break
+                case '^':
+                    result = leftValue ^ rightValue
+                    break
             }
             break
         case Node.type.Function:
@@ -106,8 +124,8 @@ function evaluate (node) {
         case Node.type.Identifier:
             var variableName = node.token.text
             result = getVariable(variableName)
-            if (!result) {
-                throwError(`未定义的变量:${variableName}`, node)
+            if (result == null) {
+                throwError(`未定义的变量`, node)
             }
             break
         case Node.type.IntLiteral:
@@ -118,6 +136,9 @@ function evaluate (node) {
             break
         case Node.type.FloatLiteral:
             result = parseFloat(node.token.text)
+            if (isNaN(result)) {
+                throwError(`错误的字面量`, node)
+            }
             break
         case Node.type.Blank:
             result = ''
@@ -146,7 +167,7 @@ function dec (str) {
 }
 
 function throwError (msg, node) {
-    let e = new Error(`error:运行错误\n${msg}\n行:${node.token.lineNumber}\n列:${node.token.startColumn}`)
+    let e = new Error(`error:运行错误\n${msg}\n字符:'${node.token.text}'\n行:${node.token.lineNumber}\n列:${node.token.startColumn}`)
     throw e
 }
 

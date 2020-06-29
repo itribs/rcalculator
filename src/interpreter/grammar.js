@@ -3,8 +3,8 @@ const Token = require('./token')
 
 /*
 Expression := Assignment | Additive
-Assignment := Identifier '=' Additive
-Additive := Multiplicative | Additive '+' Multiplicative | Additive '-' Multiplicative 
+Assignment := Identifier '=' Additive | Identifier '+=' Additive | Identifier '-=' Additive | Identifier '*=' Additive | Identifier '/=' Additive | Identifier '%=' Additive | Identifier '<<=' Additive | Identifier '>>=' Additive | Identifier '|=' Additive | Identifier '&=' Additive | Identifier '^=' Additive
+Additive := Multiplicative | Additive '+' Multiplicative | Additive '-' Multiplicative | Additive '<<' Multiplicative | Additive '>>' Multiplicative | Additive '|' Multiplicative | Additive '&' Multiplicative  | Additive '^' Multiplicative 
 Multiplicative := Function | Multiplicative '*' Function | Multiplicative '/' Function | Multiplicative '%' Function
 Function := Identifier '(' (Additive (',' Additive)?)? ')' | Primary
 Primary := Identifier | IntLiteral | FloatLiteral | '(' Additive ')'
@@ -20,12 +20,14 @@ function primary (tokens) {
             case Token.type.FloatLiteral:
                 if (token.type == Token.type.Minus) {
                     tokens.read()
-                    token = tokens.peek()
-                    if (token.type == Token.type.IntLiteral || token.type == Token.type.FloatLiteral) {
-                        token.text = '-' + token.text
+                    let nextToken = tokens.peek()
+                    if (nextToken.type == Token.type.IntLiteral || nextToken.type == Token.type.FloatLiteral) {
+                        token = token.append(nextToken, nextToken.type)
+                    } else {
+                        throwError('表达式缺少右边值', token)
                     }
                 }
-                token = tokens.read()
+                tokens.read()
                 let type = token.type == Token.type.IntLiteral ? Node.type.IntLiteral : Node.type.FloatLiteral
                 node = new Node(type, token)
                 break
@@ -45,17 +47,14 @@ function primary (tokens) {
                             tokens.unread()
                             token = tokens.peek()
                         }
-                        let e = new Error(`error:格式错误\n缺少右括号\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                        throw e
+                        throwError('缺少右括号', token)
                     }
                 } else {
-                    let e = new Error(`error:格式错误\n括号内缺少表达式\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                    throw e
+                    throwError('括号内缺少表达式', token)
                 }
                 break
             case Token.type.Unknown:
-                let e = new Error(`error:格式错误\n发现未知字符\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                throw e
+                throwError('发现意外字符', token)
                 break
         }
     }
@@ -81,8 +80,7 @@ function func (tokens) {
                         tokens.read()
                         let child = additive(tokens)
                         if (!child) {
-                            let e = new Error(`error:格式错误\n缺少参数\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                            throw e
+                            throwError('缺少参数', token)
                         }
                         children.push(child)
                     } else {
@@ -98,8 +96,7 @@ function func (tokens) {
                     tokens.unread()
                     token = tokens.peek()
                 }
-                let e = new Error(`error:格式错误\n缺少右括号\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                throw e
+                throwError('缺少右括号', token)
             }
             for (let i = 0; i < children.length; i++) {
                 node.addChild(children[i])
@@ -129,8 +126,7 @@ function multiplicative (tokens) {
                     node.addChild(child2)
                     child1 = node
                 } else {
-                    let e = new Error(`error:格式错误\n表达式缺少右边值\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                    throw e
+                    throwError('表达式缺少右边值', token)
                 }
             } else {
                 break
@@ -146,8 +142,18 @@ function additive (tokens) {
     if (child1) {
         while (true) {
             let token = tokens.peek()
-            if (token && (token.type == Token.type.Plus || token.type == Token.type.Minus)) {
+            if (token && [Token.type.Plus, Token.type.Minus, Token.type.Bar, Token.type.Ampersand, Token.type.Caret, Token.type.LessThan, Token.type.GreaterThan].indexOf(token.type) > -1) {
                 tokens.read()
+                if (token.type == Token.type.LessThan || token.type == Token.type.GreaterThan) {
+                    let nextToken = tokens.peek()
+                    if (nextToken.type == token.type) {
+                        tokens.read()
+                        token = token.append(nextToken, token.type == Token.type.LessThan ? Token.type.ShiftLeft : Token.type.ShiftRight)
+                    } else {
+                        throwError('预期"' + token.text + token.text + '"', token)
+                    }
+                }
+
                 let child2 = multiplicative(tokens)
                 if (child2) {
                     node = new Node(Node.type.Additive, token)
@@ -155,8 +161,7 @@ function additive (tokens) {
                     node.addChild(child2)
                     child1 = node
                 } else {
-                    let e = new Error(`error:格式错误\n表达式缺少右边值\n行:${token.lineNumber}\n列:${token.startColumn}`)
-                    throw e
+                    throwError('表达式缺少右边值', token)
                 }
             } else {
                 break
@@ -172,14 +177,44 @@ function assignment (tokens) {
         tokens.read()
         let child1 = new Node(Node.type.Identifier, token)
         token = tokens.peek()
-        if (token && token.type == Token.type.Equal) {
+        if (token && [Token.type.Equal, Token.type.Plus, Token.type.Minus, Token.type.Star, Token.type.Slash, Token.type.Percent, Token.type.LessThan, Token.type.GreaterThan, Token.type.Bar, Token.type.Ampersand, Token.type.Caret].indexOf(token.type) > -1) {
             tokens.read()
-            let node = new Node(Node.type.Assignment, token)
-            let child2 = additive(tokens)
-            if (child2) {
-                node.addChild(child1)
-                node.addChild(child2)
-                return node
+            if (token.type == Token.type.LessThan || token.type == Token.type.GreaterThan) {
+                let nextToken = tokens.peek()
+                if (nextToken.type == token.type) {
+                    tokens.read()
+                    token = token.append(nextToken, nextToken.type)
+                } else {
+                    return null
+                }
+            }
+            let child2 = null
+            if (token.type != Token.type.Equal) {
+                let nextToken = tokens.peek()
+                if (nextToken.type == Token.type.Equal) {
+                    tokens.read()
+                    child2 = new Node(token.type == Token.type.Star || token.type == Token.type.Slash || token.type == Token.type.Percent ? Node.type.Multiplicative : Node.type.Additive, token)
+                    child2.addChild(child1)
+                    let child3 = additive(tokens)
+                    if (child3) {
+                        child2.addChild(child3)
+                        token = nextToken
+                    } else {
+                        return null
+                    }
+                }
+            } else {
+                child2 = additive(tokens)
+            }
+            if (token.type == Token.type.Equal) {
+                let node = new Node(Node.type.Assignment, token)
+                if (child2) {
+                    node.addChild(child1)
+                    node.addChild(child2)
+                    return node
+                } else {
+                    throwError('表达式缺少右边值', token)
+                }
             }
         }
     }
@@ -214,12 +249,16 @@ function expression (tokens) {
                 tokens.read()
             }
         } else {
-            let e = new Error(`error:格式错误\n每个语句独占一行\n行:${token.lineNumber}\n列:${token.startColumn}`)
-            throw e
+            throwError('每个语句独占一行', token)
         }
     }
 
     return node
+}
+
+function throwError (msg, token) {
+    let e = new Error(`error:格式错误\n${msg}\n字符:'${token.text}'\n行:${token.lineNumber}\n列:${token.startColumn}`)
+    throw e
 }
 
 function treeRootNode (tokens) {
