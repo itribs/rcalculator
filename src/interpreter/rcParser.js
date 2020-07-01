@@ -2,6 +2,8 @@
 // jshint ignore: start
 var antlr4 = require('antlr4/index');
 var rcListener = require('./rcListener').rcListener;
+var rcVisitor = require('./rcVisitor').rcVisitor;
+
 var grammarFileName = "rc.g4";
 
 
@@ -178,6 +180,14 @@ ExpressionContext.prototype.exitRule = function(listener) {
 	}
 };
 
+ExpressionContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitExpression(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -258,6 +268,14 @@ AssignmentExpressionContext.prototype.exitRule = function(listener) {
     if(listener instanceof rcListener ) {
         listener.exitAssignmentExpression(this);
 	}
+};
+
+AssignmentExpressionContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitAssignmentExpression(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
 };
 
 
@@ -364,6 +382,14 @@ AssignmentOperatorContext.prototype.exitRule = function(listener) {
 	}
 };
 
+AssignmentOperatorContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitAssignmentOperator(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -438,6 +464,14 @@ AdditiveExpressionContext.prototype.exitRule = function(listener) {
     if(listener instanceof rcListener ) {
         listener.exitAdditiveExpression(this);
 	}
+};
+
+AdditiveExpressionContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitAdditiveExpression(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
 };
 
 
@@ -565,6 +599,14 @@ OperatorContext.prototype.exitRule = function(listener) {
 	}
 };
 
+OperatorContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitOperator(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -639,6 +681,14 @@ MultiplicativeExpressionContext.prototype.exitRule = function(listener) {
     if(listener instanceof rcListener ) {
         listener.exitMultiplicativeExpression(this);
 	}
+};
+
+MultiplicativeExpressionContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitMultiplicativeExpression(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
 };
 
 
@@ -744,6 +794,14 @@ MethodInvocationContext.prototype.exitRule = function(listener) {
     if(listener instanceof rcListener ) {
         listener.exitMethodInvocation(this);
 	}
+};
+
+MethodInvocationContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitMethodInvocation(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
 };
 
 
@@ -852,6 +910,14 @@ ArgumentListContext.prototype.exitRule = function(listener) {
 	}
 };
 
+ArgumentListContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitArgumentList(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -941,6 +1007,14 @@ PrimaryContext.prototype.exitRule = function(listener) {
 	}
 };
 
+PrimaryContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitPrimary(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -1024,6 +1098,14 @@ IdentifierContext.prototype.exitRule = function(listener) {
 	}
 };
 
+IdentifierContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitIdentifier(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
+};
+
 
 
 
@@ -1086,6 +1168,14 @@ LiteralContext.prototype.exitRule = function(listener) {
     if(listener instanceof rcListener ) {
         listener.exitLiteral(this);
 	}
+};
+
+LiteralContext.prototype.accept = function(visitor) {
+    if ( visitor instanceof rcVisitor ) {
+        return visitor.visitLiteral(this);
+    } else {
+        return visitor.visitChildren(this);
+    }
 };
 
 
