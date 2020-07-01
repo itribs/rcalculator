@@ -1,12 +1,12 @@
 grammar rc;
 
 expressions
-	: (expression '\n'|EOF)+
+	: 	expression+
 	;
 
 expression
-    :   assignmentExpression
-    |   additiveExpression
+    :   assignmentExpression (NEWLINE+|EOF)
+    |   additiveExpression (NEWLINE+|EOF)
     ;
 
 assignmentExpression
@@ -294,5 +294,15 @@ Identifier
 	:	[a-zA-Z_][0-9a-zA-Z_]*
 	;
 
-WS  :  [ \t\r\n\u000C]+ -> skip
+SKIP_
+    :   SPACES -> skip
+    ;
+
+fragment
+SPACES
+    :   [ \t]+
+    ;
+	
+NEWLINE  
+	:  '\r'? '\n'
     ;

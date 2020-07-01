@@ -4,11 +4,8 @@ const rcParser = require('./interpreter/rcParser')
 const myVisitor = require('./interpreter/myVisitor')
 
 let code = `
-a=2_22_2
-b=0x64aa
-a+3
-`
-let input = new antlr4.InputStream(code)
+a=2_22_2`
+let input = new antlr4.InputStream(code.trim())
 let lexer = new rcLexer.rcLexer(input)
 let tokens = new antlr4.CommonTokenStream(lexer)
 let parser = new rcParser.rcParser(tokens)
