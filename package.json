@@ -8,6 +8,7 @@
         "build": "vue-cli-service build"
     },
     "dependencies": {
+        "antlr4": "^4.8.0",
         "element-ui": "^2.13.0",
         "lodash": "^4.17.15",
         "vue": "^2.6.10"

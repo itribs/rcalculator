@@ -1,16 +1,10 @@
-const lexer = require('./interpreter/lexer')
-const grammar = require('./interpreter/grammar')
-const interpreter = require('./interpreter/interpreter')
+const antlr4 = require('antlr4/index')
+const RcLexer = require('./interpreter/lexer/rcLexer')
 
 let code = `
-a=2
-a+=a+1
+a=2_22_2
+2+3
 `
-let tokens = lexer.tokenize(code)
-console.log(tokens.toString())
-let node = grammar.treeRootNode(tokens)
-node.dumpAST(node, '')
-let result = interpreter.evaluate(node)
-console.log(result)
-//let result = interpreter.evaluateCode(code)
-//console.log(result)
+var input = new antlr4.InputStream(code)
+var rcLexer = new RcLexer.rcLexer(input)
+var tokens = new antlr4.CommonTokenStream(rcLexer)
