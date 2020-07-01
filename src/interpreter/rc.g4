@@ -1,5 +1,9 @@
 grammar rc;
 
+expressions
+	: (expression '\n'|EOF)+
+	;
+
 expression
     :   assignmentExpression
     |   additiveExpression
