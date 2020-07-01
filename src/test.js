@@ -1,10 +1,14 @@
 const antlr4 = require('antlr4/index')
-const RcLexer = require('./interpreter/lexer/rcLexer')
+const rcLexer = require('./interpreter/rcLexer')
+const rcParser = require('./interpreter/rcParser')
+const rcVisitor = require('./interpreter/rcVisitor')
 
 let code = `
 a=2_22_2
-2+3
+a+3
 `
-var input = new antlr4.InputStream(code)
-var rcLexer = new RcLexer.rcLexer(input)
-var tokens = new antlr4.CommonTokenStream(rcLexer)
+let input = new antlr4.InputStream(code)
+let lexer = new rcLexer.rcLexer(input)
+let tokens = new antlr4.CommonTokenStream(lexer)
+let parser = new rcParser.rcParser(tokens)
+console.log(parser)
