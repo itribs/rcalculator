@@ -12,98 +12,56 @@ function rcVisitor() {
 rcVisitor.prototype = Object.create(antlr4.tree.ParseTreeVisitor.prototype);
 rcVisitor.prototype.constructor = rcVisitor;
 
-// Visit a parse tree produced by rcParser#program.
-rcVisitor.prototype.visitProgram = function(ctx) {
+// Visit a parse tree produced by rcParser#prog.
+rcVisitor.prototype.visitProg = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
-// Visit a parse tree produced by rcParser#expressions.
-rcVisitor.prototype.visitExpressions = function(ctx) {
+// Visit a parse tree produced by rcParser#stat.
+rcVisitor.prototype.visitStat = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
-// Visit a parse tree produced by rcParser#expression.
-rcVisitor.prototype.visitExpression = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#assignmentExpression.
-rcVisitor.prototype.visitAssignmentExpression = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#assignmentOperator.
-rcVisitor.prototype.visitAssignmentOperator = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#additiveExpression.
-rcVisitor.prototype.visitAdditiveExpression = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#additiveOperator.
-rcVisitor.prototype.visitAdditiveOperator = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#multiplicativeExpression.
-rcVisitor.prototype.visitMultiplicativeExpression = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#multiplicativeOperator.
-rcVisitor.prototype.visitMultiplicativeOperator = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#primary.
-rcVisitor.prototype.visitPrimary = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#methodInvocation.
-rcVisitor.prototype.visitMethodInvocation = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#argumentList.
-rcVisitor.prototype.visitArgumentList = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
-// Visit a parse tree produced by rcParser#identifier.
+// Visit a parse tree produced by rcParser#Identifier.
 rcVisitor.prototype.visitIdentifier = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
-// Visit a parse tree produced by rcParser#literal.
+// Visit a parse tree produced by rcParser#FuncInvo.
+rcVisitor.prototype.visitFuncInvo = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#Literal.
 rcVisitor.prototype.visitLiteral = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
-// Visit a parse tree produced by rcParser#unknownExpression.
-rcVisitor.prototype.visitUnknownExpression = function(ctx) {
+// Visit a parse tree produced by rcParser#Operation.
+rcVisitor.prototype.visitOperation = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
-// Visit a parse tree produced by rcParser#eos.
-rcVisitor.prototype.visitEos = function(ctx) {
+// Visit a parse tree produced by rcParser#PriorityExpr.
+rcVisitor.prototype.visitPriorityExpr = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#assigExpr.
+rcVisitor.prototype.visitAssigExpr = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#args.
+rcVisitor.prototype.visitArgs = function(ctx) {
   return this.visitChildren(ctx);
 };
 

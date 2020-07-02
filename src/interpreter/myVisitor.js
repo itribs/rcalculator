@@ -15,16 +15,16 @@ let defaultVariables = {
     SQRT2: Math.SQRT2
 }
 
-function getVariable (name) {
+function getVariable(name) {
     let vars = Object.assign({}, defaultVariables, variables)
     return vars[name]
 }
 
-function setVariable (name, value) {
+function setVariable(name, value) {
     variables[name] = value
 }
 
-function freeVariables () {
+function freeVariables() {
     variables = {}
 }
 
@@ -40,23 +40,7 @@ let funcs = {
     }
 }
 
-function checkErrorNode (ctx) {
-    if (ctx.children) {
-        for (let i = 0; i < ctx.children.length; i++) {
-            if (ctx.children[i] instanceof antlrTree.ErrorNodeImpl) {
-                return ctx.children[i]
-            } else {
-                let result = checkErrorNode(ctx.children[i])
-                if (result) {
-                    return result
-                }
-            }
-        }
-    }
-    return ctx instanceof antlrTree.ErrorNodeImpl ? ctx : null
-}
-
-function myVisitor () {
+function myVisitor() {
     rcVisitor.call(this)
     return this
 }
@@ -64,55 +48,86 @@ function myVisitor () {
 myVisitor.prototype = Object.create(rcVisitor.prototype)
 myVisitor.prototype.constructor = myVisitor
 
-myVisitor.prototype.visitExpressions = function (ctx) {
+myVisitor.prototype.visitProg = function (ctx) {
     return this.visitChildren(ctx)
 }
 
-myVisitor.prototype.visitExpression = function (ctx) {
-    let errorNode = checkErrorNode(ctx)
-    if (errorNode) {
-        return this.visitErrorNode(errorNode)
-    }
+myVisitor.prototype.visitStat = function (ctx) {
     return this.visit(ctx.children[0])
 }
 
-myVisitor.prototype.visitAssignmentExpression = function (ctx) {
+myVisitor.prototype.visitPriorityExpr = function (ctx) {
+    return this.visit(ctx.children[1])
+}
+
+myVisitor.prototype.visitOperation = function (ctx) {
+    if (ctx.children.length == 3) {
+        let bop = ctx.children[1].symbol.type
+        let leftValue = this.visit(ctx.children[0])
+        let rightValue = this.visit(ctx.children[2])
+        switch (bop) {
+            case rcParser.ADD:
+                return leftValue + rightValue
+            case rcParser.SUB:
+                return leftValue - rightValue
+            case rcParser.MUL:
+                return leftValue * rightValue
+            case rcParser.DIV:
+                return leftValue / rightValue
+            case rcParser.MOD:
+                return leftValue % rightValue
+            case rcParser.LSHIFT:
+                return leftValue << rightValue
+            case rcParser.RSHIFT:
+                return leftValue >> rightValue
+            case rcParser.BITOR:
+                return leftValue | rightValue
+            case rcParser.BITAND:
+                return leftValue & rightValue
+            case rcParser.CARET:
+                return leftValue ^ rightValue
+        }
+    }
+    return null
+}
+
+myVisitor.prototype.visitAssigExpr = function (ctx) {
     if (ctx.children.length == 3) {
         let result = null
-        let bop = this.visit(ctx.children[1])
+        let bop = ctx.children[1].symbol.type
         let rightValue = this.visit(ctx.children[2])
-        let variableName = ctx.children[0].children[0].symbol.text
-        if (bop != '=') {
+        let variableName = ctx.children[0].symbol.text
+        if (bop != rcParser.ASSIGN) {
             let leftValue = this.visit(ctx.children[0])
             switch (bop) {
-                case '+=':
+                case ADD_ASSIGN:
                     result = leftValue + rightValue
                     break
-                case '-=':
+                case SUB_ASSIGN:
                     result = leftValue - rightValue
                     break
-                case '*=':
+                case MUL_ASSIGN:
                     result = leftValue * rightValue
                     break
-                case '/=':
+                case DIV_ASSIGN:
                     result = leftValue / rightValue
                     break
-                case '%=':
+                case MOD_ASSIGN:
                     result = leftValue % rightValue
                     break
-                case '&=':
+                case AND_ASSIGN:
                     result = leftValue & rightValue
                     break
-                case '|=':
+                case OR_ASSIGN:
                     result = leftValue | rightValue
                     break
-                case '^=':
+                case XOR_ASSIGN:
                     result = leftValue ^ rightValue
                     break
-                case '<<=':
+                case LSHIFT_ASSIGN:
                     result = leftValue << rightValue
                     break
-                case '>>=':
+                case RSHIFT_ASSIGN:
                     result = leftValue >> rightValue
                     break
             }
@@ -122,90 +137,36 @@ myVisitor.prototype.visitAssignmentExpression = function (ctx) {
         setVariable(variableName, result)
         return result
     }
-    return this.visitChildren(ctx)[0]
+    return null
 }
 
-myVisitor.prototype.visitAssignmentOperator = function (ctx) {
-    return this.visitChildren(ctx)[0]
-}
-
-myVisitor.prototype.visitAdditiveExpression = function (ctx) {
-    let children = this.visitChildren(ctx)
-    if (children.length == 3) {
-        switch (children[1]) {
-            case '+':
-                return children[0] + children[2]
-            case '-':
-                return children[0] - children[2]
-            case '<<':
-                return children[0] << children[2]
-            case '>>':
-                return children[0] >> children[2]
-            case '|':
-                return children[0] | children[2]
-            case '&':
-                return children[0] & children[2]
-            case '^':
-                return children[0] ^ children[2]
-        }
-    }
-    return children[0]
-}
-
-myVisitor.prototype.visitAdditiveOperator = function (ctx) {
-    return this.visit(ctx.children[0])
-}
-
-myVisitor.prototype.visitMultiplicativeExpression = function (ctx) {
-    let children = this.visitChildren(ctx)
-    if (children.length == 3) {
-        switch (children[1]) {
-            case '*':
-                return children[0] * children[2]
-            case '/':
-                return children[0] / children[2]
-            case '%':
-                return children[0] % children[2]
-        }
-    }
-    return children[0]
-}
-
-myVisitor.prototype.visitMultiplicativeOperator = function (ctx) {
-    return this.visit(ctx.children[0])
-}
-
-myVisitor.prototype.visitPrimary = function (ctx) {
-    let children = this.visitChildren(ctx)
-    if (!children) return null
-
-    if (children.length == 3) {
-        return children[1]
-    }
-    return children[0]
-}
-
-myVisitor.prototype.visitMethodInvocation = function (ctx) {
-    if (ctx.children.length == 4) {
-        let funcName = ctx.children[0].children[0].symbol.text
+myVisitor.prototype.visitFuncInvo = function (ctx) {
+    if (ctx.children.length >= 3) {
+        let funcName = ctx.children[0].symbol.text
         let func = eval('Math.' + funcName)
         if (!func || typeof func != 'function') {
             func = funcs[funcName]
         }
         if (func) {
-            let args = this.visitChildren(ctx.children[2])
-            for (let i = 0; i < args.length; i++) {
-                if (args[i] == ',') {
-                    args.splice(i, 1)
-                }
-            }
+            let args = ctx.children.length == 4 ? this.visit(ctx.children[2]) : null
             return func.apply(null, args)
         } else {
             ctx.parser.notifyErrorListeners('unknown function：' + funcName)
             return null
         }
     }
-    return this.visit(ctx.children[0])
+    return null
+}
+
+myVisitor.prototype.visitArgs = function(ctx) {
+    let args = []
+    for (let i = 0; i < ctx.children.length; i++) {
+        let arg = this.visit(ctx.children[i])
+        if (arg != ',') {
+            args.push(arg)
+        }
+    }
+    return args
 }
 
 myVisitor.prototype.visitIdentifier = function (ctx) {
@@ -228,15 +189,19 @@ myVisitor.prototype.visitLiteral = function (ctx) {
     } else if (value.startsWith("0o")) {
         radix = 8
     }
+    let func = ctx.children[0].symbol.type == rcParser.IntegerLiteral ? parseInt : parseFloat
     if (radix > 0) {
         value = value.substr(2)
-        return parseInt(value, radix)
+        return func(value, radix)
     }
 
-    return parseInt(value)
+    return func(value)
 }
 
 myVisitor.prototype.visitTerminal = function (node) {
+    if (node.symbol.type == rcParser.LineBreak) {
+        return ''
+    }
     return node.symbol.text
 }
 

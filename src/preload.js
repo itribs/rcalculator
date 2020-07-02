@@ -16,22 +16,28 @@ window.evaluateCode = function (code) {
     }
     utools.db.put(data)
 
-    let input = new antlr4.InputStream(code.trim())
+    let input = new antlr4.InputStream(code)
     let lexer = new rcLexer(input)
     let tokens = new antlr4.CommonTokenStream(lexer)
     let parser = new rcParser(tokens)
     let listener = new myErrorListener()
 
+    parser.removeErrorListeners()
+    parser.addErrorListener(listener)
     lexer.addErrorListener(listener)
     parser.addErrorListener(listener)
 
-    let tree = parser.expressions()
-    let visitor = new myVisitor()
     let result = {
-        value: tree.accept(visitor).join('\n')
+        value: []
     }
-    if (listener.errors.length > 0) {
-        result.error = listener.errors.join('\n')
+    let tree = parser.prog()
+    try {
+        let visitor = new myVisitor()
+        result.value = tree.accept(visitor).join('\n')
+        if (listener.errors.length > 0) {
+            result.error = listener.errors.join('\n')
+        }
+    } catch {
     }
     return result
 }

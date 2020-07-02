@@ -10,6 +10,7 @@ myErrorListener.prototype = Object.create(antlr4.error.ErrorListener.prototype);
 myErrorListener.prototype.constructor = myErrorListener;
 
 myErrorListener.prototype.syntaxError = function (recognizer, offendingSymbol, line, column, msg, e) {
+    console.error("line " + line + ":" + column + " " + msg)
     this.errors.push(msg)
 }
 
