@@ -1,12 +1,20 @@
 grammar rc;
 
+options {
+    superClass=myParserBase;
+}
+
+program
+    :   expressions? EOF
+    ;
+
 expressions
 	: 	expression+
 	;
 
 expression
-    :   assignmentExpression (NEWLINE+|EOF)
-    |   additiveExpression (NEWLINE+|EOF)
+    :   assignmentExpression eos
+    |   additiveExpression eos
     ;
 
 assignmentExpression
@@ -29,15 +37,12 @@ assignmentOperator
 
 additiveExpression
     :   multiplicativeExpression
-    |   additiveExpression operator multiplicativeExpression
+    |   additiveExpression additiveOperator multiplicativeExpression
     ;
 
-operator
+additiveOperator
     :   '+'
     |   '-'
-    |   '*'
-    |   '/'
-    |   '%'
     |   '>>'
     |   '<<'
     |   '&'
@@ -46,24 +51,30 @@ operator
     ;
 
 multiplicativeExpression
+    :   primary
+    |   multiplicativeExpression multiplicativeOperator primary
+    ;
+
+multiplicativeOperator
+    :   '*'
+    |   '/'
+    |   '%'
+    ;
+
+primary
     :   methodInvocation
-    |   multiplicativeExpression operator methodInvocation
+    |   identifier
+    |   literal
+    |   '(' additiveExpression ')'
     ;
 
 methodInvocation
     :   identifier '(' argumentList? ')'
-    |   primary
     ;
 
 argumentList
     :	additiveExpression (',' additiveExpression)*
 	;
-
-primary
-    :   identifier
-    |   literal
-    |   '(' additiveExpression ')'
-    ;
 
 identifier
     :   Identifier
@@ -73,6 +84,10 @@ literal
 	:	IntegerLiteral
 	|	FloatingPointLiteral
 	;
+
+unknownExpression
+    :   .*?
+    ;
 
 
 //词法
@@ -263,7 +278,13 @@ BinaryDigitOrUnderscore
 	|	'_'
 	;
 
+eos
+    : EOF
+    | {this.lineTerminatorAhead()}?
+    | {this.closeBrace()}?
+    ;
 
+//Token
 COMMA : ',';
 LPAREN : '(';
 RPAREN : ')';
@@ -294,15 +315,10 @@ Identifier
 	:	[a-zA-Z_][0-9a-zA-Z_]*
 	;
 
-SKIP_
-    :   SPACES -> skip
+WhiteSpaces
+    :   [\t\u000B\u000C\u0020\u00A0]+ -> channel(HIDDEN)
     ;
 
-fragment
-SPACES
-    :   [ \t]+
-    ;
-	
-NEWLINE  
-	:  '\r'? '\n'
+LineTerminator
+    :   [\r\n\u2028\u2029] -> channel(HIDDEN)
     ;

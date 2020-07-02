@@ -12,6 +12,12 @@ function rcVisitor() {
 rcVisitor.prototype = Object.create(antlr4.tree.ParseTreeVisitor.prototype);
 rcVisitor.prototype.constructor = rcVisitor;
 
+// Visit a parse tree produced by rcParser#program.
+rcVisitor.prototype.visitProgram = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by rcParser#expressions.
 rcVisitor.prototype.visitExpressions = function(ctx) {
   return this.visitChildren(ctx);
@@ -42,14 +48,26 @@ rcVisitor.prototype.visitAdditiveExpression = function(ctx) {
 };
 
 
-// Visit a parse tree produced by rcParser#operator.
-rcVisitor.prototype.visitOperator = function(ctx) {
+// Visit a parse tree produced by rcParser#additiveOperator.
+rcVisitor.prototype.visitAdditiveOperator = function(ctx) {
   return this.visitChildren(ctx);
 };
 
 
 // Visit a parse tree produced by rcParser#multiplicativeExpression.
 rcVisitor.prototype.visitMultiplicativeExpression = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#multiplicativeOperator.
+rcVisitor.prototype.visitMultiplicativeOperator = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#primary.
+rcVisitor.prototype.visitPrimary = function(ctx) {
   return this.visitChildren(ctx);
 };
 
@@ -66,12 +84,6 @@ rcVisitor.prototype.visitArgumentList = function(ctx) {
 };
 
 
-// Visit a parse tree produced by rcParser#primary.
-rcVisitor.prototype.visitPrimary = function(ctx) {
-  return this.visitChildren(ctx);
-};
-
-
 // Visit a parse tree produced by rcParser#identifier.
 rcVisitor.prototype.visitIdentifier = function(ctx) {
   return this.visitChildren(ctx);
@@ -80,6 +92,18 @@ rcVisitor.prototype.visitIdentifier = function(ctx) {
 
 // Visit a parse tree produced by rcParser#literal.
 rcVisitor.prototype.visitLiteral = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#unknownExpression.
+rcVisitor.prototype.visitUnknownExpression = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#eos.
+rcVisitor.prototype.visitEos = function(ctx) {
   return this.visitChildren(ctx);
 };
 

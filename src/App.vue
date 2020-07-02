@@ -104,14 +104,10 @@ export default {
     change () {
       let result = window.evaluateCode(this.code)
       if (result.error) {
-        this.result = result.error.message
+        this.result = result.error
         this.color = 'error'
       } else {
-        let str = ''
-        for (let i = 0; i < result.value.length; i++) {
-          str += result.value[i] + '\n'
-        }
-        this.result = str
+        this.result = result.value
         this.color = 'success'
         this.onscroll()
       }
