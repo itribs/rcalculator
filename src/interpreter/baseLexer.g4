@@ -1,5 +1,9 @@
 lexer grammar baseLexer;
 
+DateLiteral
+    :   '#' [0-9][0-9][0-9][0-9][-/][0-9]?[0-9][-/][0-9]?[0-9] '#'
+    ;
+
 IntegerLiteral
     :	DecimalIntegerLiteral
 	|	HexIntegerLiteral

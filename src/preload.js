@@ -22,8 +22,8 @@ window.evaluateCode = function (code) {
     let parser = new rcParser(tokens)
     let listener = new myErrorListener()
 
+    lexer.removeErrorListeners()
     parser.removeErrorListeners()
-    parser.addErrorListener(listener)
     lexer.addErrorListener(listener)
     parser.addErrorListener(listener)
 
@@ -31,13 +31,10 @@ window.evaluateCode = function (code) {
         value: []
     }
     let tree = parser.prog()
-    try {
-        let visitor = new myVisitor()
-        result.value = tree.accept(visitor).join('\n')
-        if (listener.errors.length > 0) {
-            result.error = listener.errors.join('\n')
-        }
-    } catch {
+    let visitor = new myVisitor()
+    result.value = tree.accept(visitor).join('\n')
+    if (listener.errors.length > 0) {
+        result.error = listener.errors.join('\n')
     }
     return result
 }

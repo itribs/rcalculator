@@ -8,28 +8,52 @@ options {
 
 prog
     :   stat+
+    |   EOF
     ;
 
 stat
 	: 	expr (LineBreak|EOF)
     |   assigExpr (LineBreak|EOF)
+    |   dateOp (LineBreak|EOF)
     |   LineBreak
 	;
 
 expr
-    :   expr op=('*' | '/' | '%') expr                            #Operation
-    |   expr op=('+' | '-' | '&' | '|' | '^' | '<<' | '>>') expr  #Operation   
-    |   Identifier '(' args? ')'                                  #FuncInvo
-    |   IntegerLiteral                                            #Literal
-    |   FloatingPointLiteral                                      #Literal
-    |   Identifier                                                #Identifier
-    |   '(' expr ')'                                              #PriorityExpr
+    :   dateDiff
+    |   expr op=('*' | '/' | '%') expr
+    |   expr op=('+' | '-' | '&' | '|' | '^' | '<<' | '>>') expr
+    |   funcInvo
+    |   IntegerLiteral
+    |   FloatingPointLiteral
+    |   identifier
+    |   priorityExpr
+    ;
+
+dateOp
+    :   DateLiteral op=('+' | '-') IntegerLiteral op=('y' | 'm' | 'w' | 'd')
+    |   DateLiteral
+    ;
+
+dateDiff
+    :   dateOp '-' dateOp 
+    ;
+
+funcInvo
+    :   identifier '(' args? ')'
+    ;
+
+priorityExpr
+    :   '(' expr ')'
     ;
 
 assigExpr
-    :   Identifier op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') expr
+    :   identifier op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') expr
     ;
 
 args
     :	expr (',' expr)*
 	;
+
+identifier
+    :   Identifier
+    ;

@@ -21,7 +21,6 @@
                       resize="none"
                       ref="ouput"
                       readonly="true"
-                      wrap="off"
                       v-model="result"
                       :class="color">
             </el-input>
@@ -187,9 +186,11 @@ html {
 #app .el-container .error textarea {
   color: #ff5252;
   font-size: 12px;
+  word-wrap: break-word;
 }
 #app .el-container .success textarea {
   color: #0fb11c;
+  word-wrap: normal;
 }
 #app .el-main {
   padding: 0 5px;

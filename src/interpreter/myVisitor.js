@@ -1,9 +1,8 @@
-const antlr4 = require('antlr4/index')
 const antlrTree = require('antlr4/tree/Tree')
 const rcVisitor = require('./rcVisitor').rcVisitor
 const rcParser = require('./rcParser').rcParser
+const moment = require('moment')
 
-let variables = {}
 let defaultVariables = {
     E: Math.E,
     LN2: Math.LN2,
@@ -15,19 +14,6 @@ let defaultVariables = {
     SQRT2: Math.SQRT2
 }
 
-function getVariable(name) {
-    let vars = Object.assign({}, defaultVariables, variables)
-    return vars[name]
-}
-
-function setVariable(name, value) {
-    variables[name] = value
-}
-
-function freeVariables() {
-    variables = {}
-}
-
 let funcs = {
     bin: function (value) {
         return value ? '0b' + value.toString(2) : ''
@@ -37,11 +23,28 @@ let funcs = {
     },
     hex: function (value) {
         return value ? '0x' + value.toString(16) : ''
+    },
+    timestamp: function (date) {
+        return date.getTime()
     }
 }
 
-function myVisitor() {
+function checkErrorNode (ctx) {
+    if (ctx instanceof antlrTree.ErrorNodeImpl || ctx.exception != null) {
+        return true
+    } else if (ctx.children) {
+        for (let i = 0; i < ctx.children.length; i++) {
+            if (ctx.children[i] instanceof antlrTree.ErrorNodeImpl) {
+                return true
+            }
+        }
+    }
+    return false
+}
+
+function myVisitor () {
     rcVisitor.call(this)
+    this.variables = {}
     return this
 }
 
@@ -49,18 +52,33 @@ myVisitor.prototype = Object.create(rcVisitor.prototype)
 myVisitor.prototype.constructor = myVisitor
 
 myVisitor.prototype.visitProg = function (ctx) {
+    if (checkErrorNode(ctx)) return []
+
     return this.visitChildren(ctx)
 }
 
+myVisitor.prototype.getVariable = function (name) {
+    let vars = Object.assign({}, defaultVariables, this.variables)
+    return vars[name]
+}
+
+myVisitor.prototype.setVariable = function (name, value) {
+    this.variables[name] = value
+}
+
 myVisitor.prototype.visitStat = function (ctx) {
+    if (checkErrorNode(ctx)) return null
     return this.visit(ctx.children[0])
 }
 
 myVisitor.prototype.visitPriorityExpr = function (ctx) {
+    if (checkErrorNode(ctx)) return null
     return this.visit(ctx.children[1])
 }
 
-myVisitor.prototype.visitOperation = function (ctx) {
+myVisitor.prototype.visitExpr = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
     if (ctx.children.length == 3) {
         let bop = ctx.children[1].symbol.type
         let leftValue = this.visit(ctx.children[0])
@@ -88,10 +106,12 @@ myVisitor.prototype.visitOperation = function (ctx) {
                 return leftValue ^ rightValue
         }
     }
-    return null
+    return this.visit(ctx.children[0])
 }
 
 myVisitor.prototype.visitAssigExpr = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
     if (ctx.children.length == 3) {
         let result = null
         let bop = ctx.children[1].symbol.type
@@ -134,13 +154,48 @@ myVisitor.prototype.visitAssigExpr = function (ctx) {
         } else {
             result = rightValue
         }
-        setVariable(variableName, result)
+        this.setVariable(variableName, result)
         return result
     }
     return null
 }
 
+myVisitor.prototype.visitDateDiff = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
+    if (ctx.children.length == 3) {
+        let dateStr1 = this.visit(ctx.children[0])
+        let dateStr2 = this.visit(ctx.children[2])
+        return moment(dateStr1).diff(moment(dateStr2), 'days')
+    }
+    return null
+}
+
+
+myVisitor.prototype.visitDateOp = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
+    if (ctx.children.length == 4) {
+        let dateStr = this.visit(ctx.children[0])
+        let date = moment(dateStr)
+        let bop = ctx.children[1].symbol.type
+        let value = this.visit(ctx.children[2])
+        let key = this.visit(ctx.children[3])
+        let unit = {
+            'd': 'days',
+            'w': 'weeks',
+            'm': 'months',
+            'y': 'years'
+        }
+        value = bop == rcParser.ADD ? value : value * -1
+        return date.add(value, unit[key]).format('YYYY-MM-DD')
+    }
+    return this.visit(ctx.children[0])
+}
+
 myVisitor.prototype.visitFuncInvo = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
     if (ctx.children.length >= 3) {
         let funcName = ctx.children[0].symbol.text
         let func = eval('Math.' + funcName)
@@ -151,14 +206,16 @@ myVisitor.prototype.visitFuncInvo = function (ctx) {
             let args = ctx.children.length == 4 ? this.visit(ctx.children[2]) : null
             return func.apply(null, args)
         } else {
-            ctx.parser.notifyErrorListeners('unknown function：' + funcName)
+            ctx.parser.notifyErrorListeners("unknown function：'" + funcName + "'")
             return null
         }
     }
     return null
 }
 
-myVisitor.prototype.visitArgs = function(ctx) {
+myVisitor.prototype.visitArgs = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
     let args = []
     for (let i = 0; i < ctx.children.length; i++) {
         let arg = this.visit(ctx.children[i])
@@ -170,17 +227,19 @@ myVisitor.prototype.visitArgs = function(ctx) {
 }
 
 myVisitor.prototype.visitIdentifier = function (ctx) {
+    if (checkErrorNode(ctx)) return null
+
     let variableName = this.visit(ctx.children[0])
-    let result = getVariable(variableName)
+    let result = this.getVariable(variableName)
     if (result == null) {
-        ctx.parser.notifyErrorListeners('undefined variable：' + variableName)
+        ctx.parser.notifyErrorListeners("undefined variable：'" + variableName + "'")
         return null
     }
     return result
 }
 
-myVisitor.prototype.visitLiteral = function (ctx) {
-    let value = this.visit(ctx.children[0]).replace(/_/g, '').toLowerCase()
+function parseNumber (node) {
+    let value = node.symbol.text.replace(/_/g, '').toLowerCase()
     let radix = 0
     if (value.startsWith("0x")) {
         radix = 16
@@ -189,7 +248,7 @@ myVisitor.prototype.visitLiteral = function (ctx) {
     } else if (value.startsWith("0o")) {
         radix = 8
     }
-    let func = ctx.children[0].symbol.type == rcParser.IntegerLiteral ? parseInt : parseFloat
+    let func = node.symbol.type == rcParser.IntegerLiteral ? parseInt : parseFloat
     if (radix > 0) {
         value = value.substr(2)
         return func(value, radix)
@@ -199,8 +258,17 @@ myVisitor.prototype.visitLiteral = function (ctx) {
 }
 
 myVisitor.prototype.visitTerminal = function (node) {
-    if (node.symbol.type == rcParser.LineBreak) {
-        return ''
+    if (checkErrorNode(node)) return null
+
+    switch (node.symbol.type) {
+        case rcParser.LineBreak:
+        case rcParser.EOF:
+            return ''
+        case rcParser.IntegerLiteral:
+        case rcParser.FloatingPointLiteral:
+            return parseNumber(node)
+        case rcParser.DateLiteral:
+            return node.symbol.text.replace(/#/g, '')
     }
     return node.symbol.text
 }
