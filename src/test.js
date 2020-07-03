@@ -5,8 +5,8 @@ const myVisitor = require('./interpreter/myVisitor').myVisitor
 const myErrorListener = require('./interpreter/myErrorListener').myErrorListener
 
 let code = `
-1
-#2012-12-17# + 2y
+a = 2
+-a
 `
 let input = new antlr4.InputStream(code)
 let lexer = new rcLexer(input)

@@ -12,11 +12,16 @@ prog
     ;
 
 stat
-	: 	expr (LineBreak|EOF)
+	: 	value (LineBreak|EOF)
     |   assigExpr (LineBreak|EOF)
     |   dateOp (LineBreak|EOF)
     |   LineBreak 
 	;
+
+value
+    :   expr
+    |   dateOp
+    ;
 
 expr
     :   dateDiff
@@ -25,21 +30,27 @@ expr
     |   funcInvo
     |   IntegerLiteral
     |   FloatingPointLiteral
-    |   identifier
+    |   varVal
     |   priorityExpr
+    |   negativeVal
     ;
 
 dateOp
-    :   DateLiteral op=('+' | '-') IntegerLiteral op=('y' | 'm' | 'w' | 'd')
+    :   DateLiteral op=('+' | '-') expr op=('y' | 'm' | 'w' | 'd')
     |   DateLiteral
     ;
 
 dateDiff
     :   dateOp '-' dateOp 
+    |   priorityDateDiff
+    ;
+
+priorityDateDiff
+    :   '(' dateDiff ')'
     ;
 
 funcInvo
-    :   identifier '(' args? ')'
+    :   Identifier '(' args? ')'
     ;
 
 priorityExpr
@@ -47,13 +58,23 @@ priorityExpr
     ;
 
 assigExpr
-    :   identifier op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') expr
+    :   Identifier '=' expr
+    |   varVal op=('=' | '+=' | '-=' | '*=' | '/=' | '%=' | '&=' | '|=' | '^=' | '<<=' | '>>=') expr
     ;
 
 args
-    :	expr (',' expr)*
+    :	value (',' value)*
 	;
 
-identifier
+varVal
     :   Identifier
+    ;
+
+negativeVal
+    :   '-' dateDiff
+    |   '-' funcInvo
+    |   '-' IntegerLiteral
+    |   '-' FloatingPointLiteral
+    |   '-' varVal
+    |   '-' priorityExpr
     ;

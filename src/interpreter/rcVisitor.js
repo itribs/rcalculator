@@ -24,6 +24,12 @@ rcVisitor.prototype.visitStat = function(ctx) {
 };
 
 
+// Visit a parse tree produced by rcParser#value.
+rcVisitor.prototype.visitValue = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
 // Visit a parse tree produced by rcParser#expr.
 rcVisitor.prototype.visitExpr = function(ctx) {
   return this.visitChildren(ctx);
@@ -38,6 +44,12 @@ rcVisitor.prototype.visitDateOp = function(ctx) {
 
 // Visit a parse tree produced by rcParser#dateDiff.
 rcVisitor.prototype.visitDateDiff = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#priorityDateDiff.
+rcVisitor.prototype.visitPriorityDateDiff = function(ctx) {
   return this.visitChildren(ctx);
 };
 
@@ -66,8 +78,14 @@ rcVisitor.prototype.visitArgs = function(ctx) {
 };
 
 
-// Visit a parse tree produced by rcParser#identifier.
-rcVisitor.prototype.visitIdentifier = function(ctx) {
+// Visit a parse tree produced by rcParser#varVal.
+rcVisitor.prototype.visitVarVal = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#negativeVal.
+rcVisitor.prototype.visitNegativeVal = function(ctx) {
   return this.visitChildren(ctx);
 };
 

@@ -1,7 +1,7 @@
 lexer grammar baseLexer;
 
 DateLiteral
-    :   '#' [0-9][0-9][0-9][0-9][-/][0-9]?[0-9][-/][0-9]?[0-9] '#'
+    :   '#' [0-9][0-9][0-9][0-9][-/][0-9][0-9][-/][0-9][0-9] '#'
     ;
 
 IntegerLiteral
@@ -13,7 +13,7 @@ IntegerLiteral
 
 FloatingPointLiteral
 	:	DecimalFloatingPointLiteral
-	|	HexadecimalFloatingPointLiteral
+//	|	HexadecimalFloatingPointLiteral
 	;
 
 fragment
@@ -191,31 +191,31 @@ BinaryDigitOrUnderscore
 	|	'_'
 	;
 
-COMMA : ',';
-LPAREN : '(';
-RPAREN : ')';
-ASSIGN : '=';
-ADD : '+';
-SUB : '-';
-MUL : '*';
-DIV : '/';
-MOD : '%';
-BITAND : '&';
-BITOR : '|';
-CARET : '^';
-LSHIFT : '<<';
-RSHIFT : '>>';
+Comma : ',';
+LParen : '(';
+RParen: ')';
+Assign: '=';
+Add : '+';
+Sub : '-';
+Mul : '*';
+Div : '/';
+Mod : '%';
+BitAnd : '&';
+BitOr : '|';
+Caret : '^';
+LShift : '<<';
+RShift : '>>';
 
-ADD_ASSIGN : '+=';
-SUB_ASSIGN : '-=';
-MUL_ASSIGN : '*=';
-DIV_ASSIGN : '/=';
-MOD_ASSIGN : '%=';
-AND_ASSIGN : '&=';
-OR_ASSIGN : '|=';
-XOR_ASSIGN : '^=';
-LSHIFT_ASSIGN : '<<=';
-RSHIFT_ASSIGN : '>>=';
+Add_Assign : '+=';
+Sub_Assign : '-=';
+Mul_Assign : '*=';
+Div_Assign : '/=';
+Mod_Assign : '%=';
+And_Assign : '&=';
+Or_Assign : '|=';
+XOr_Assign : '^=';
+LShift_Assign : '<<=';
+RShift_Assign : '>>=';
 
 Identifier
 	:	[a-zA-Z_][0-9a-zA-Z_]*

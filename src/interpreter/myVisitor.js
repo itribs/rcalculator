@@ -16,25 +16,38 @@ let defaultVariables = {
 
 let funcs = {
     bin: function (value) {
-        return value ? '0b' + value.toString(2) : ''
+        if (value instanceof myNumber) {
+            value.radix = 2
+        }
+        return value
     },
     oct: function (value) {
-        return value ? '0o' + value.toString(8) : ''
+        if (value instanceof myNumber) {
+            value.radix = 8
+        }
+        return value
     },
     hex: function (value) {
-        return value ? '0x' + value.toString(16) : ''
+        if (value instanceof myNumber) {
+            value.radix = 16
+        }
+        return value
     },
     timestamp: function (date) {
-        return date.getTime()
+        if (date instanceof moment) {
+            return new myNumber(date.toDate().getTime())
+        }
+        return date
     }
 }
 
-function checkErrorNode (ctx) {
+function checkErrorNode(ctx) {
     if (ctx instanceof antlrTree.ErrorNodeImpl || ctx.exception != null) {
         return true
-    } else if (ctx.children) {
+    }
+    if (ctx.children) {
         for (let i = 0; i < ctx.children.length; i++) {
-            if (ctx.children[i] instanceof antlrTree.ErrorNodeImpl) {
+            if (ctx.children[i] instanceof antlrTree.ErrorNodeImpl || ctx.children[i].exception != null) {
                 return true
             }
         }
@@ -42,7 +55,57 @@ function checkErrorNode (ctx) {
     return false
 }
 
-function myVisitor () {
+function parseNumber(value) {
+    if (value == null || typeof value == 'number' || value instanceof myNumber)
+        return value
+
+    let radix = 10
+    if (value.startsWith("0x")) {
+        radix = 16
+    } else if (value.startsWith("0b")) {
+        radix = 2
+    } else if (value.startsWith("0o")) {
+        radix = 8
+    }
+    if (radix != 10) {
+        value = value.substr(2)
+        return parseInt(value, radix)
+    }
+
+    let func = value.toString().indexOf('.') > -1 ? parseFloat : parseInt
+    return func(value)
+}
+
+function myNumber(value) {
+    this.value = parseNumber(value)
+    this.radix = 10
+}
+
+myNumber.prototype.toString = function () {
+    if (this.value.toString().indexOf('.') > -1) {
+        return this.value.toString()
+    }
+    let value = this.value.toString(this.radix)
+    switch (this.radix) {
+        case 2:
+            return '0b' + value
+        case 8:
+            return '0o' + value
+        case 16:
+            return '0x' + value
+    }
+    return value
+}
+
+myNumber.prototype.valueOf = function () {
+    return this.value
+}
+
+moment.prototype.toString = function () {
+    return this.format('YYYY-MM-DD')
+}
+
+function myVisitor() {
     rcVisitor.call(this)
     this.variables = {}
     return this
@@ -50,12 +113,6 @@ function myVisitor () {
 
 myVisitor.prototype = Object.create(rcVisitor.prototype)
 myVisitor.prototype.constructor = myVisitor
-
-myVisitor.prototype.visitProg = function (ctx) {
-    if (checkErrorNode(ctx)) return []
-
-    return this.visitChildren(ctx)
-}
 
 myVisitor.prototype.getVariable = function (name) {
     let vars = Object.assign({}, defaultVariables, this.variables)
@@ -66,118 +123,176 @@ myVisitor.prototype.setVariable = function (name, value) {
     this.variables[name] = value
 }
 
+myVisitor.prototype.visitProg = function (ctx) {
+    if (checkErrorNode(ctx)) return []
+    return this.visitChildren(ctx)
+}
+
+
 myVisitor.prototype.visitStat = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
+    let result = this.visit(ctx.children[0])
+    if (result != null) {
+        return result.toString()
+    }
+    return
+}
+
+myVisitor.prototype.visitValue = function (ctx) {
+    if (checkErrorNode(ctx))
+        return
     return this.visit(ctx.children[0])
 }
 
 myVisitor.prototype.visitPriorityExpr = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
     return this.visit(ctx.children[1])
 }
 
 myVisitor.prototype.visitExpr = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     if (ctx.children.length == 3) {
+        let result = null
         let bop = ctx.children[1].symbol.type
         let leftValue = this.visit(ctx.children[0])
         let rightValue = this.visit(ctx.children[2])
+
+        if (leftValue == null || rightValue == null)
+            return
+
         switch (bop) {
-            case rcParser.ADD:
-                return leftValue + rightValue
-            case rcParser.SUB:
-                return leftValue - rightValue
-            case rcParser.MUL:
-                return leftValue * rightValue
-            case rcParser.DIV:
-                return leftValue / rightValue
-            case rcParser.MOD:
-                return leftValue % rightValue
-            case rcParser.LSHIFT:
-                return leftValue << rightValue
-            case rcParser.RSHIFT:
-                return leftValue >> rightValue
-            case rcParser.BITOR:
-                return leftValue | rightValue
-            case rcParser.BITAND:
-                return leftValue & rightValue
-            case rcParser.CARET:
-                return leftValue ^ rightValue
+            case rcParser.Add:
+                result = leftValue + rightValue.valueOf()
+                break
+            case rcParser.Sub:
+                result = leftValue - rightValue.valueOf()
+                break
+            case rcParser.Mul:
+                result = leftValue * rightValue.valueOf()
+                break
+            case rcParser.Div:
+                result = leftValue / rightValue.valueOf()
+                break
+            case rcParser.Mod:
+                result = leftValue % rightValue.valueOf()
+                break
+            case rcParser.LShift:
+                result = leftValue << rightValue.valueOf()
+                break
+            case rcParser.RShift:
+                result = leftValue >> rightValue.valueOf()
+                break
+            case rcParser.BitOr:
+                result = leftValue | rightValue.valueOf()
+                break
+            case rcParser.BitAnd:
+                result = leftValue & rightValue.valueOf()
+                break
+            case rcParser.Caret:
+                result = leftValue ^ rightValue.valueOf()
+                break
         }
+        return new myNumber(result)
     }
     return this.visit(ctx.children[0])
 }
 
 myVisitor.prototype.visitAssigExpr = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     if (ctx.children.length == 3) {
         let result = null
         let bop = ctx.children[1].symbol.type
         let rightValue = this.visit(ctx.children[2])
-        let variableName = ctx.children[0].symbol.text
-        if (bop != rcParser.ASSIGN) {
+        if (rightValue == null)
+            return
+
+        let variableName
+        if (bop != rcParser.Assign) {
+            variableName = this.visit(ctx.children[0].children[0])
             let leftValue = this.visit(ctx.children[0])
+
+            if (variableName == null || leftValue == null)
+                return
+
             switch (bop) {
-                case ADD_ASSIGN:
-                    result = leftValue + rightValue
+                case rcParser.Add_Assign:
+                    result = leftValue + rightValue.valueOf()
                     break
-                case SUB_ASSIGN:
-                    result = leftValue - rightValue
+                case rcParser.Sub_Assign:
+                    result = leftValue - rightValue.valueOf()
                     break
-                case MUL_ASSIGN:
-                    result = leftValue * rightValue
+                case rcParser.Mul_Assign:
+                    result = leftValue * rightValue.valueOf()
                     break
-                case DIV_ASSIGN:
-                    result = leftValue / rightValue
+                case rcParser.Div_Assign:
+                    result = leftValue / rightValue.valueOf()
                     break
-                case MOD_ASSIGN:
-                    result = leftValue % rightValue
+                case rcParser.Mod_Assign:
+                    result = leftValue % rightValue.valueOf()
                     break
-                case AND_ASSIGN:
-                    result = leftValue & rightValue
+                case rcParser.And_Assign:
+                    result = leftValue & rightValue.valueOf()
                     break
-                case OR_ASSIGN:
-                    result = leftValue | rightValue
+                case rcParser.Or_Assign:
+                    result = leftValue | rightValue.valueOf()
                     break
-                case XOR_ASSIGN:
-                    result = leftValue ^ rightValue
+                case rcParser.XOr_Assign:
+                    result = leftValue ^ rightValue.valueOf()
                     break
-                case LSHIFT_ASSIGN:
-                    result = leftValue << rightValue
+                case rcParser.LShift_Assign:
+                    result = leftValue << rightValue.valueOf()
                     break
-                case RSHIFT_ASSIGN:
-                    result = leftValue >> rightValue
+                case rcParser.RShift_Assign:
+                    result = leftValue >> rightValue.valueOf()
                     break
             }
         } else {
+            variableName = this.visit(ctx.children[0])
+
+            if (variableName == null)
+                return
+
             result = rightValue
         }
+        result = new myNumber(result)
         this.setVariable(variableName, result)
         return result
     }
-    return null
+    return
 }
 
 myVisitor.prototype.visitDateDiff = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     if (ctx.children.length == 3) {
-        let dateStr1 = this.visit(ctx.children[0])
-        let dateStr2 = this.visit(ctx.children[2])
-        return moment(dateStr1).diff(moment(dateStr2), 'days')
+        let date1 = this.visit(ctx.children[0])
+        let date2 = this.visit(ctx.children[2])
+        if (date1 && date2) {
+            return date1.diff(date2, 'days')
+        }
     }
-    return null
+    return this.visit(ctx.children[0])
 }
 
+myVisitor.prototype.visitPriorityDateDiff = function (ctx) {
+    if (checkErrorNode(ctx))
+        return
+    return this.visit(ctx.children[1])
+}
 
 myVisitor.prototype.visitDateOp = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     if (ctx.children.length == 4) {
-        let dateStr = this.visit(ctx.children[0])
-        let date = moment(dateStr)
+        let date = this.visit(ctx.children[0])
         let bop = ctx.children[1].symbol.type
         let value = this.visit(ctx.children[2])
         let key = this.visit(ctx.children[3])
@@ -187,38 +302,53 @@ myVisitor.prototype.visitDateOp = function (ctx) {
             'm': 'months',
             'y': 'years'
         }
-        value = bop == rcParser.ADD ? value : value * -1
-        return date.add(value, unit[key]).format('YYYY-MM-DD')
+        value = bop == rcParser.Add ? value : value * -1
+        if (date && value != null && key) {
+            return date.add(value, unit[key])
+        }
+        return
     }
     return this.visit(ctx.children[0])
 }
 
 myVisitor.prototype.visitFuncInvo = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     if (ctx.children.length >= 3) {
-        let funcName = ctx.children[0].symbol.text
+        let funcName = this.visit(ctx.children[0])
+        if (funcName == null)
+            return
+
         let func = eval('Math.' + funcName)
-        if (!func || typeof func != 'function') {
-            func = funcs[funcName]
-        }
-        if (func) {
-            let args = ctx.children.length == 4 ? this.visit(ctx.children[2]) : null
+        let args = ctx.children.length == 4 ? this.visit(ctx.children[2]) : null
+
+        if (func && typeof func == 'function') {
             return func.apply(null, args)
         } else {
+            func = funcs[funcName]
+        }
+
+        if (func) {
+            return func.apply(this, args)
+        } else {
             ctx.parser.notifyErrorListeners("unknown function：'" + funcName + "'")
-            return null
+            return
         }
     }
-    return null
+    return
 }
 
 myVisitor.prototype.visitArgs = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+    if (checkErrorNode(ctx))
+        return
 
     let args = []
     for (let i = 0; i < ctx.children.length; i++) {
         let arg = this.visit(ctx.children[i])
+        if (arg == null)
+            return
+
         if (arg != ',') {
             args.push(arg)
         }
@@ -226,39 +356,36 @@ myVisitor.prototype.visitArgs = function (ctx) {
     return args
 }
 
-myVisitor.prototype.visitIdentifier = function (ctx) {
-    if (checkErrorNode(ctx)) return null
+rcVisitor.prototype.visitVarVal = function (ctx) {
+    if (checkErrorNode(ctx))
+        return
 
     let variableName = this.visit(ctx.children[0])
+    if (variableName == null)
+        return
+
     let result = this.getVariable(variableName)
     if (result == null) {
         ctx.parser.notifyErrorListeners("undefined variable：'" + variableName + "'")
-        return null
+        return
     }
     return result
 }
 
-function parseNumber (node) {
-    let value = node.symbol.text.replace(/_/g, '').toLowerCase()
-    let radix = 0
-    if (value.startsWith("0x")) {
-        radix = 16
-    } else if (value.startsWith("0b")) {
-        radix = 2
-    } else if (value.startsWith("0o")) {
-        radix = 8
-    }
-    let func = node.symbol.type == rcParser.IntegerLiteral ? parseInt : parseFloat
-    if (radix > 0) {
-        value = value.substr(2)
-        return func(value, radix)
-    }
+rcVisitor.prototype.visitNegativeVal = function (ctx) {
+    if (checkErrorNode(ctx))
+        return
 
-    return func(value)
+    if (ctx.children.length == 2) {
+        let value = this.visit(ctx.children[1])
+        return new myNumber(0 - value)
+    }
+    return
 }
 
 myVisitor.prototype.visitTerminal = function (node) {
-    if (checkErrorNode(node)) return null
+    if (checkErrorNode(node))
+        return
 
     switch (node.symbol.type) {
         case rcParser.LineBreak:
@@ -266,15 +393,16 @@ myVisitor.prototype.visitTerminal = function (node) {
             return ''
         case rcParser.IntegerLiteral:
         case rcParser.FloatingPointLiteral:
-            return parseNumber(node)
+            let value = node.symbol.text.replace(/_/g, '').toLowerCase()
+            return new myNumber(value)
         case rcParser.DateLiteral:
-            return node.symbol.text.replace(/#/g, '')
+            return moment(node.symbol.text.replace(/#/g, ''))
     }
     return node.symbol.text
 }
 
 myVisitor.prototype.visitErrorNode = function (node) {
-    return null
+    return
 }
 
 exports.myVisitor = myVisitor
