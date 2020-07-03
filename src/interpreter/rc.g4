@@ -15,7 +15,7 @@ stat
 	: 	expr (LineBreak|EOF)
     |   assigExpr (LineBreak|EOF)
     |   dateOp (LineBreak|EOF)
-    |   LineBreak
+    |   LineBreak 
 	;
 
 expr
