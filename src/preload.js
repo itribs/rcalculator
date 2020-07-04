@@ -1,4 +1,3 @@
-const { clipboard } = require('electron')
 const antlr4 = require('antlr4/index')
 const rcLexer = require('./interpreter/rcLexer').rcLexer
 const rcParser = require('./interpreter/rcParser').rcParser
@@ -40,5 +39,5 @@ window.evaluateCode = function (code) {
 }
 
 window.saveClipboard = function (text) {
-    clipboard.writeText(text)
+    utools.copyText(text)
 }
