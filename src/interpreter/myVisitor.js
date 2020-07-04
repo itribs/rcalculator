@@ -41,7 +41,7 @@ let funcs = {
     }
 }
 
-function checkErrorNode(ctx) {
+function checkErrorNode (ctx) {
     if (ctx instanceof antlrTree.ErrorNodeImpl || ctx.exception != null) {
         return true
     }
@@ -55,7 +55,7 @@ function checkErrorNode(ctx) {
     return false
 }
 
-function parseNumber(value) {
+function parseNumber (value) {
     if (value == null || typeof value == 'number' || value instanceof myNumber)
         return value
 
@@ -76,7 +76,7 @@ function parseNumber(value) {
     return func(value)
 }
 
-function myNumber(value) {
+function myNumber (value) {
     this.value = parseNumber(value)
     this.radix = 10
 }
@@ -105,7 +105,7 @@ moment.prototype.toString = function () {
     return this.format('YYYY-MM-DD')
 }
 
-function myVisitor() {
+function myVisitor () {
     rcVisitor.call(this)
     this.variables = {}
     return this
@@ -166,34 +166,34 @@ myVisitor.prototype.visitExpr = function (ctx) {
 
         switch (bop) {
             case rcParser.Add:
-                result = leftValue + rightValue.valueOf()
+                result = leftValue.valueOf() + rightValue.valueOf()
                 break
             case rcParser.Sub:
-                result = leftValue - rightValue.valueOf()
+                result = leftValue.valueOf() - rightValue.valueOf()
                 break
             case rcParser.Mul:
-                result = leftValue * rightValue.valueOf()
+                result = leftValue.valueOf() * rightValue.valueOf()
                 break
             case rcParser.Div:
-                result = leftValue / rightValue.valueOf()
+                result = leftValue.valueOf() / rightValue.valueOf()
                 break
             case rcParser.Mod:
-                result = leftValue % rightValue.valueOf()
+                result = leftValue.valueOf() % rightValue.valueOf()
                 break
             case rcParser.LShift:
-                result = leftValue << rightValue.valueOf()
+                result = leftValue.valueOf() << rightValue.valueOf()
                 break
             case rcParser.RShift:
-                result = leftValue >> rightValue.valueOf()
+                result = leftValue.valueOf() >> rightValue.valueOf()
                 break
             case rcParser.BitOr:
-                result = leftValue | rightValue.valueOf()
+                result = leftValue.valueOf() | rightValue.valueOf()
                 break
             case rcParser.BitAnd:
-                result = leftValue & rightValue.valueOf()
+                result = leftValue.valueOf() & rightValue.valueOf()
                 break
             case rcParser.Caret:
-                result = leftValue ^ rightValue.valueOf()
+                result = leftValue.valueOf() ^ rightValue.valueOf()
                 break
         }
         return new myNumber(result)
@@ -222,34 +222,34 @@ myVisitor.prototype.visitAssigExpr = function (ctx) {
 
             switch (bop) {
                 case rcParser.Add_Assign:
-                    result = leftValue + rightValue.valueOf()
+                    result = leftValue.valueOf() + rightValue.valueOf()
                     break
                 case rcParser.Sub_Assign:
-                    result = leftValue - rightValue.valueOf()
+                    result = leftValue.valueOf() - rightValue.valueOf()
                     break
                 case rcParser.Mul_Assign:
-                    result = leftValue * rightValue.valueOf()
+                    result = leftValue.valueOf() * rightValue.valueOf()
                     break
                 case rcParser.Div_Assign:
-                    result = leftValue / rightValue.valueOf()
+                    result = leftValue.valueOf() / rightValue.valueOf()
                     break
                 case rcParser.Mod_Assign:
-                    result = leftValue % rightValue.valueOf()
+                    result = leftValue.valueOf() % rightValue.valueOf()
                     break
                 case rcParser.And_Assign:
-                    result = leftValue & rightValue.valueOf()
+                    result = leftValue.valueOf() & rightValue.valueOf()
                     break
                 case rcParser.Or_Assign:
-                    result = leftValue | rightValue.valueOf()
+                    result = leftValue.valueOf() | rightValue.valueOf()
                     break
                 case rcParser.XOr_Assign:
-                    result = leftValue ^ rightValue.valueOf()
+                    result = leftValue.valueOf() ^ rightValue.valueOf()
                     break
                 case rcParser.LShift_Assign:
-                    result = leftValue << rightValue.valueOf()
+                    result = leftValue.valueOf() << rightValue.valueOf()
                     break
                 case rcParser.RShift_Assign:
-                    result = leftValue >> rightValue.valueOf()
+                    result = leftValue.valueOf() >> rightValue.valueOf()
                     break
             }
         } else {
@@ -258,7 +258,7 @@ myVisitor.prototype.visitAssigExpr = function (ctx) {
             if (variableName == null)
                 return
 
-            result = rightValue
+            result = rightValue.valueOf()
         }
         result = new myNumber(result)
         this.setVariable(variableName, result)
@@ -291,11 +291,11 @@ myVisitor.prototype.visitDateOp = function (ctx) {
     if (checkErrorNode(ctx))
         return
 
-    if (ctx.children.length == 4) {
+    if (ctx.children.length == 5) {
         let date = this.visit(ctx.children[0])
         let bop = ctx.children[1].symbol.type
         let value = this.visit(ctx.children[2])
-        let key = this.visit(ctx.children[3])
+        let key = this.visit(ctx.children[4])
         let unit = {
             'd': 'days',
             'w': 'weeks',
@@ -304,7 +304,7 @@ myVisitor.prototype.visitDateOp = function (ctx) {
         }
         value = bop == rcParser.Add ? value : value * -1
         if (date && value != null && key) {
-            return date.add(value, unit[key])
+            return date.add(value.valueOf(), unit[key])
         }
         return
     }
@@ -324,7 +324,7 @@ myVisitor.prototype.visitFuncInvo = function (ctx) {
         let args = ctx.children.length == 4 ? this.visit(ctx.children[2]) : null
 
         if (func && typeof func == 'function') {
-            return func.apply(null, args)
+            return new myNumber(func.apply(null, args))
         } else {
             func = funcs[funcName]
         }
