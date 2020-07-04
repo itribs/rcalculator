@@ -18,8 +18,14 @@ rcVisitor.prototype.visitProg = function(ctx) {
 };
 
 
-// Visit a parse tree produced by rcParser#stat.
-rcVisitor.prototype.visitStat = function(ctx) {
+// Visit a parse tree produced by rcParser#statementList.
+rcVisitor.prototype.visitStatementList = function(ctx) {
+  return this.visitChildren(ctx);
+};
+
+
+// Visit a parse tree produced by rcParser#statement.
+rcVisitor.prototype.visitStatement = function(ctx) {
   return this.visitChildren(ctx);
 };
 

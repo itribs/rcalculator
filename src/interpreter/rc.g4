@@ -7,15 +7,18 @@ options {
 }
 
 prog
-    :   stat+
-    |   EOF
+    :   statementList? EOF
     ;
 
-stat
+statementList
+    :   statement+ 
+    ;
+
+statement
 	: 	value (LineBreak|EOF)
     |   assigExpr (LineBreak|EOF)
     |   dateOp (LineBreak|EOF)
-    |   LineBreak 
+    |   LineBreak
 	;
 
 value
@@ -36,7 +39,7 @@ expr
     ;
 
 dateOp
-    :   DateLiteral op=('+' | '-') expr '#' op=('y' | 'm' | 'w' | 'd')
+    :   dateOp op=('+' | '-') expr '#' op=('y' | 'm' | 'w' | 'd')
     |   DateLiteral
     ;
 

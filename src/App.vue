@@ -3,7 +3,7 @@
     <el-container style="margin-left:0; margin-right:0;">
       <el-main>
         <el-row>
-          <el-col :span="14"
+          <el-col :span="16"
                   :style="{padding:0}"
                   class="code">
             <el-input type="textarea"
@@ -14,7 +14,7 @@
                       @input="debounce">
             </el-input>
           </el-col>
-          <el-col :span="10"
+          <el-col :span="8"
                   class="result"
                   :style="{padding:0}">
             <el-input type="textarea"
@@ -34,10 +34,12 @@
                         effect="light">
               <div slot="content">
                 变量： a = -1.2 <br />
+                日期：#2012-12-12# <br />
                 默认变量：E、LN2、LN10、LOG2E、LOG10E、PI、SQRT1_2、SQRT2 <br />
-                可以重新赋值：E = 0 <br />
                 运输符：+、-、*、/、%、|、&、^、<<、>>、()、+=、-=、|= 等等 <br />
                   Math方法：abs(-1.2)、max(0.5, -2.1)、random() 等等 <br />
+                  详情：[<a href="javascript:;"
+                     @click="openHelp">点击查看</a>] <br />
               </div>
               <i class="el-icon-question"></i>
             </el-tooltip>
@@ -108,8 +110,10 @@ export default {
       } else {
         this.result = result.value
         this.color = 'success'
-        this.onscroll()
       }
+      setTimeout(function () {
+        this.onscroll()
+      }.bind(this), 1)
     },
     copy () {
       if (this.color == 'success' && this.result) {
@@ -120,6 +124,9 @@ export default {
           utools.hideMainWindow()
         }
       }
+    },
+    openHelp () {
+      utools.shellOpenExternal('https://github.com/itribs/rcalculator/blob/master/public/README.md')
     }
   },
   created () {
@@ -166,7 +173,7 @@ html {
   border: 1px solid #eee;
 }
 #app .el-container textarea {
-  font-size: 28px;
+  font-size: 24px;
   overflow-x: auto;
   font-weight: bold;
 }

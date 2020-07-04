@@ -86,13 +86,24 @@ myNumber.prototype.toString = function () {
         return this.value.toString()
     }
     let value = this.value.toString(this.radix)
-    switch (this.radix) {
-        case 2:
-            return '0b' + value
-        case 8:
-            return '0o' + value
-        case 16:
-            return '0x' + value
+    if (value >= 0) {
+        switch (this.radix) {
+            case 2:
+                return '0b' + value
+            case 8:
+                return '0o' + value
+            case 16:
+                return '0x' + value
+        }
+    } else {
+        switch (this.radix) {
+            case 2:
+                return value.replace('-', '-0b')
+            case 8:
+                return value.replace('-', '-0o')
+            case 16:
+                return value.replace('-', '-0x')
+        }
     }
     return value
 }
@@ -125,11 +136,17 @@ myVisitor.prototype.setVariable = function (name, value) {
 
 myVisitor.prototype.visitProg = function (ctx) {
     if (checkErrorNode(ctx)) return []
-    return this.visitChildren(ctx)
+    let result = []
+    if (ctx.children.length == 2) {
+        result = result.concat(this.visit(ctx.children[0]))
+        result.push(this.visit(ctx.children[1]))
+    } else {
+        result.push(this.visit(ctx.children[0]))
+    }
+    return result
 }
 
-
-myVisitor.prototype.visitStat = function (ctx) {
+myVisitor.prototype.visitStatement = function (ctx) {
     if (checkErrorNode(ctx))
         return
     let result = this.visit(ctx.children[0])
