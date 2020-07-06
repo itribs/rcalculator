@@ -2,10 +2,6 @@ grammar rc;
 
 import baseLexer;
 
-options {
-    superClass=myParser;
-}
-
 prog
     :   statementList? EOF
     ;
@@ -17,7 +13,6 @@ statementList
 statement
 	: 	value (LineBreak|EOF)
     |   assigExpr (LineBreak|EOF)
-    |   dateOp (LineBreak|EOF)
     |   LineBreak
 	;
 

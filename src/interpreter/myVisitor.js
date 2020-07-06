@@ -349,7 +349,7 @@ myVisitor.prototype.visitFuncInvo = function (ctx) {
         if (func) {
             return func.apply(this, args)
         } else {
-            ctx.parser.notifyErrorListeners("unknown function：'" + funcName + "'")
+            ctx.parser.notifyErrorListeners("未知方法：'" + funcName + "'")
             return
         }
     }
@@ -383,7 +383,7 @@ rcVisitor.prototype.visitVarVal = function (ctx) {
 
     let result = this.getVariable(variableName)
     if (result == null) {
-        ctx.parser.notifyErrorListeners("undefined variable：'" + variableName + "'")
+        ctx.parser.notifyErrorListeners("未知变量：'" + variableName + "'")
         return
     }
     return result
@@ -410,10 +410,14 @@ myVisitor.prototype.visitTerminal = function (node) {
             return ''
         case rcParser.IntegerLiteral:
         case rcParser.FloatingPointLiteral:
-            let value = node.symbol.text.replace(/_/g, '').toLowerCase()
+            var value = node.symbol.text.replace(/_/g, '').toLowerCase()
             return new myNumber(value)
         case rcParser.DateLiteral:
-            return moment(node.symbol.text.replace(/#/g, ''))
+            var value = node.symbol.text.replace(/#/g, '')
+            if (value.toLowerCase() == 'now') {
+                return moment()
+            }
+            return moment(value)
     }
     return node.symbol.text
 }

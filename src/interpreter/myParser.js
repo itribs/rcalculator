@@ -1,10 +1,13 @@
-const antlr4 = require("antlr4/index");
-const rcParser = require("./rcParser");
+const rcParser = require('./rcParser').rcParser
+const myErrorStrategy = require('./myErrorStrategy').myErrorStrategy
 
 function myParser (input) {
-    antlr4.Parser.call(this, input);
+    rcParser.call(this, input)
+    this._errHandler = new myErrorStrategy()
+    return this
 }
 
-myParser.prototype = Object.create(antlr4.Parser.prototype);
+myParser.prototype = Object.create(rcParser.prototype)
+myParser.prototype.constructor = myParser
 
-module.exports.myParser = myParser
+exports.myParser = myParser
