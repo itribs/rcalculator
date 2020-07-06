@@ -308,11 +308,11 @@ myVisitor.prototype.visitDateOp = function (ctx) {
     if (checkErrorNode(ctx))
         return
 
-    if (ctx.children.length == 5) {
+    if (ctx.children.length >= 3) {
         let date = this.visit(ctx.children[0])
         let bop = ctx.children[1].symbol.type
         let value = this.visit(ctx.children[2])
-        let key = this.visit(ctx.children[4])
+        let key = ctx.children.length == 5 ? this.visit(ctx.children[4]) : 'd'
         let unit = {
             'd': 'days',
             'w': 'weeks',

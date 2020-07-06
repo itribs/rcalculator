@@ -34,7 +34,7 @@ expr
     ;
 
 dateOp
-    :   dateOp op=('+' | '-') expr '#' op=('y' | 'm' | 'w' | 'd')
+    :   dateOp op=('+' | '-') expr ('#' op=('y' | 'm' | 'w' | 'd'))?
     |   DateLiteral
     ;
 

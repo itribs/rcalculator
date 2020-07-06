@@ -5,7 +5,7 @@ const myVisitor = require('./interpreter/myVisitor').myVisitor
 const myErrorListener = require('./interpreter/myErrorListener').myErrorListener
 
 let code = `
-timestamp(#now#)
+#now# + 5
 `
 let input = new antlr4.InputStream(code)
 let lexer = new myLexer(input)
