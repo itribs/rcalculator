@@ -4,7 +4,6 @@
       <el-main>
         <el-row>
           <el-col :span="16"
-                  :style="{padding:0}"
                   class="code">
             <el-input type="textarea"
                       ref="input"
@@ -15,8 +14,7 @@
             </el-input>
           </el-col>
           <el-col :span="8"
-                  class="result"
-                  :style="{padding:0}">
+                  class="result">
             <el-input type="textarea"
                       resize="none"
                       ref="ouput"
@@ -158,7 +156,7 @@ html {
   border: 0;
 }
 .el-textarea .el-textarea__inner {
-  padding: 20px;
+  padding: 20px 0 20px 20px;
 }
 #app {
   height: 100%;
@@ -174,7 +172,6 @@ html {
 }
 #app .el-container textarea {
   font-size: 24px;
-  overflow-x: auto;
   font-weight: bold;
 }
 #app .el-container,
@@ -184,8 +181,14 @@ html {
   height: 100%;
   padding: 0;
 }
+#app .code {
+  padding: 0;
+  overflow-x: auto;
+}
 #app .result {
   border-left: 1px solid #eee;
+  overflow: hidden;
+  padding: 0;
 }
 #app .result textarea {
   overflow: hidden;
@@ -198,6 +201,7 @@ html {
 #app .el-container .success textarea {
   color: #0fb11c;
   word-wrap: normal;
+  width: 1500px;
 }
 #app .el-main {
   padding: 0 5px;
