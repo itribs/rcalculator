@@ -10,7 +10,7 @@
     "dependencies": {
         "antlr4": "^4.8.0",
         "element-ui": "^2.13.0",
-        "lodash": "^4.17.15",
+        "lodash": "^4.17.19",
         "moment": "^2.27.0",
         "vue": "^2.6.10"
     },
