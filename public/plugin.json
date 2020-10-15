@@ -18,6 +18,12 @@
                     "label": "Code计算器",
                     "match": "/^[\\.+\\-*/%0-9\\(\\)]*$/",
                     "minLength": 1
+                },
+                {
+                    "type": "regex",
+                    "label": "Code计算器",
+                    "match": "/^=/",
+                    "minLength": 2
                 }
             ]
         }
