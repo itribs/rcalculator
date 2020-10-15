@@ -28,6 +28,23 @@ let timeManipulate = (() => {
 
         funcs.timeStartOf = (time, key) => fn(time, "startOf", constantMap.get(key));
         funcs.timeEndOf = (time, key) => fn(time, "endOf", constantMap.get(key));
+
+        //region time convert
+        funcs.unix = date => date instanceof moment ? new myNumber(date.unix()) : date;
+        funcs.unixTimestamp = funcs.unix;
+
+        funcs.fromTimestamp = number => {
+            if (number == null)
+                return number;
+            return moment(number instanceof myNumber ? number.value : number);
+        };
+        funcs.fromUnix = number => {
+            if (number == null)
+                return number;
+            return moment.unix(number instanceof myNumber ? number.value : number);
+        };
+        funcs.fromUnixTimestamp = funcs.fromUnix;
+        //endregion
     };
     scope.symbol = Symbol("timeManipulate");
 
