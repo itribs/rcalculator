@@ -72,7 +72,6 @@ export default {
   mounted () {
     let input = this.$refs.input.$el.querySelector('textarea')
     input.addEventListener('scroll', this.onscroll, true)
-    this.change()
 
     document.onkeydown = function (e) {
       let modifierKey = utools.isMacOs() ? e.metaKey : e.ctrlKey
@@ -85,7 +84,10 @@ export default {
       }
     }.bind(this)
 
-    input.focus()
+    utools.onPluginReady(() => {
+      this.change();
+      input.focus();
+    })
   },
   methods: {
     onscroll () {
