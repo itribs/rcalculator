@@ -3,6 +3,37 @@ const rcVisitor = require('./rcVisitor').rcVisitor
 const rcParser = require('./rcParser').rcParser
 const moment = require('moment')
 
+let constant = (value, symbol) => {
+    let result = new Number(value);
+    result.__symbol = symbol;
+    return result;
+};
+
+let timeManipulate = (() => {
+    let scope = funcs => {
+        let fn = (time, method, key) => {
+            if (!(time instanceof moment))
+                return time;
+            return time.clone()[method](key)
+        };
+        let constantMap = new Map();
+        for (const key of Object.keys(defaultVariables)) {
+            if (!defaultVariables.hasOwnProperty(key))
+                continue;
+            let value = defaultVariables[key];
+            if (value == null || value.__symbol == null || value.__symbol.token !== scope.symbol)
+                continue;
+            constantMap.set(value, value.__symbol.data);
+        }
+
+        funcs.timeStartOf = (time, key) => fn(time, "startOf", constantMap.get(key));
+        funcs.timeEndOf = (time, key) => fn(time, "endOf", constantMap.get(key));
+    };
+    scope.symbol = Symbol("timeManipulate");
+
+    return scope;
+})();
+
 let defaultVariables = {
     E: Math.E,
     LN2: Math.LN2,
@@ -11,7 +42,20 @@ let defaultVariables = {
     LOG10E: Math.LOG10E,
     PI: Math.PI,
     SQRT1_2: Math.SQRT1_2,
-    SQRT2: Math.SQRT2
+    SQRT2: Math.SQRT2,
+
+    //region timeManipulate
+    YEAR: constant(0, {token:timeManipulate.symbol, data: "year"}),
+    MONTH: constant(0, {token:timeManipulate.symbol, data: "month"}),
+    QUARTER: constant(0, {token:timeManipulate.symbol, data: "quarter"}),
+    WEEK: constant(0, {token:timeManipulate.symbol, data: "week"}),
+    ISO_WEEK: constant(0, {token:timeManipulate.symbol, data: "isoweek"}),
+    DAY: constant(0, {token:timeManipulate.symbol, data: "day"}),
+    DATE: constant(0, {token:timeManipulate.symbol, data: "date"}),
+    HOUR: constant(0, {token:timeManipulate.symbol, data: "hour"}),
+    MINUTE: constant(0, {token:timeManipulate.symbol, data: "minute"}),
+    SECOND: constant(0, {token: timeManipulate.symbol, data: "second"}),
+    //endregion
 }
 
 let funcs = {
@@ -40,6 +84,7 @@ let funcs = {
         return date
     }
 }
+timeManipulate(funcs);
 
 function checkErrorNode (ctx) {
     if (ctx instanceof antlrTree.ErrorNodeImpl || ctx.exception != null) {
