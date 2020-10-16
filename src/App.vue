@@ -131,14 +131,11 @@ export default {
   },
   created () {
     utools.onPluginEnter(({ code, type, payload, optional }) => {
-      if (!/^[\.+\-*/%0-9\(\)]*$/.test(payload)) {
-        payload = ''
-      }
-      let result = utools.db.get("code")
-      if (!payload && result) {
-        payload = result.data
-      }
-      this.code = payload
+      if (type !== "regex")
+        payload = "";
+      payload = payload.startsWith("=") ? _.trimStart(payload, "=") : payload;
+
+      this.code = payload || (utools.db.get("code") || {}).data || ""
       this.change()
     })
   }
