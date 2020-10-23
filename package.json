@@ -1,6 +1,6 @@
 {
     "name": "rcalculator",
-    "version": "0.2.2",
+    "version": "0.2.3",
     "private": true,
     "scripts": {
         "test": "node src/test.js",
