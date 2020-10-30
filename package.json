@@ -1,6 +1,6 @@
 {
     "name": "rcalculator",
-    "version": "0.2.3",
+    "version": "0.2.4",
     "private": true,
     "scripts": {
         "test": "node src/test.js",
@@ -17,7 +17,7 @@
     "devDependencies": {
         "@vue/cli-plugin-babel": "^4.1.0",
         "@vue/cli-service": "^4.1.0",
-        "vue-template-compiler": "^2.6.10",
-        "filemanager-webpack-plugin": "^2.0.5"
+        "filemanager-webpack-plugin": "^2.0.5",
+        "vue-template-compiler": "^2.6.10"
     }
 }

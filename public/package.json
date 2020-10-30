@@ -1,0 +1,7 @@
+{
+    "dependencies": {
+        "antlr4": "^4.8.0",
+        "lodash": "^4.17.19",
+        "moment": "^2.27.0"
+    }
+}

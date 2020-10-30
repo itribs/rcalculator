@@ -13,7 +13,7 @@ module.exports = {
         plugins: [
             new FileManagerPlugin({
                 onEnd: {
-                    move: [
+                    copy: [
                         { source: path.resolve("./src/interpreter"), destination: path.resolve("./dist/interpreter") },
                         { source: path.resolve("./src/preload.js"), destination: path.resolve("./dist/preload.js") }
                     ]
